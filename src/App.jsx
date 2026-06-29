@@ -31,6 +31,11 @@ import Cuenta from "./Negocio/Cuenta";
 import ConfiguracionNegocio from "./Negocio/Configuracion";
 import Clientes from './Negocio/Clientes';
 
+/* ================= Stripe ================= */
+
+import StripeProvider from "./stripe/StripeProvider";
+import Checkout from "./stripe/Checkout";
+
 function App() {
   return (
     <Routes>
@@ -160,9 +165,24 @@ function App() {
         <Route path="Configuracion" element={<ConfiguracionNegocio />} />
         <Route path="Clientes" element={<Clientes />} />
       </Route>
+      {/* ================= Stripe ================= */}
+      <Route
+  path="/stripe-test"
+  element={
+    <StripeProvider>
+      <div style={{ maxWidth: "400px", margin: "50px auto" }}>
+        <h2>Prueba Stripe</h2>
+        <Checkout />
+      </div>
+    </StripeProvider>
+  }
+/>
 
     </Routes>
+        
   );
 }
+
+
 
 export default App;
