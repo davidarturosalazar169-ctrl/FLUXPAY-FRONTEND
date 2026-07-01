@@ -86,15 +86,15 @@
 }
 
 /* =========================
-   HEADER NUEVO
+   NUEVO HEADER (DISEÑO SEGUNDA IMAGEN)
 ========================= */
 
 .modern-header {
   background: white;
   margin: 20px;
-  padding: 30px 40px;
+  padding: 24px 40px;
   border-radius: 24px;
-  box-shadow: 0 10px 25px rgba(0,0,0,.05);
+  box-shadow: 0 10px 25px rgba(0,0,0,.02);
   border: 1px solid #eef2f7;
 }
 
@@ -104,32 +104,17 @@
   align-items: center;
 }
 
-.dashboard-badge {
-  display: inline-block;
-  background: rgba(13,43,92,.08);
-  color: #0d2b5c;
-  padding: 7px 14px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  margin-bottom: 12px;
-}
-
 .header-left h1 {
-  font-size: 38px;
+  font-size: 28px;
   font-weight: 800;
-  color: #0d2b5c;
-  margin-bottom: 6px;
+  color: #002855; /* Tono azul marino exacto */
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
 }
 
 .header-left p {
-  color: #64748b;
-  font-size: 16px;
-}
-
-.header-left strong {
-  color: #0d2b5c;
+  color: #8a99ad; /* Color gris claro de la descripción */
+  font-size: 14px;
 }
 
 .header-right {
@@ -138,81 +123,104 @@
   gap: 18px;
 }
 
-.notification-btn {
-  width: 50px;
-  height: 50px;
-  border: none;
-  border-radius: 14px;
-  background: #f8fafc;
-  color: #0d2b5c;
-  font-size: 18px;
-  cursor: pointer;
-  transition: .3s;
-}
-
-.notification-btn:hover {
-  background: #eef4ff;
-  transform: translateY(-2px);
-}
-
-.profile-card {
+.profile-info {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  background: #f8fafc;
-  padding: 12px 18px;
-  border-radius: 18px;
+  flex-direction: column;
+  text-align: right;
+  justify-content: center;
 }
 
-.profile-avatar {
-  width: 52px;
-  height: 52px;
+.profile-name {
+  color: #081d38;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.profile-email {
+  color: #8a99ad;
+  font-size: 12.5px;
+  margin-top: 2px;
+}
+
+/* Contenedor relativo para posicionar el indicador de estado */
+.avatar-container {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 46px;
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    #0d2b5c,
-    #2563eb
-  );
+  object-fit: cover;
+  display: block;
+}
+
+.profile-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #0b2240; /* Fondo azul oscuro redondo de la inicial */
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 18px;
-}
-
-.profile-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.profile-info span {
-  color: #0d2b5c;
   font-weight: 700;
+  font-size: 16px;
 }
 
-.profile-info small {
-  color: #64748b;
-  font-size: 12px;
+/* El punto verde de conectado abajo a la derecha del círculo */
+.status-indicator {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 12px;
+  height: 12px;
+  background-color: #10b981; 
+  border: 2px solid white;
+  border-radius: 50%;
+}
+
+.notification-btn {
+  background: none;
+  border: none;
+  color: #0d2b5c;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  transition: transform 0.2s ease;
+  margin-left: 4px;
+}
+
+.notification-btn:hover {
+  transform: scale(1.1);
 }
 
 /* =========================
-   DASHBOARD
+   DASHBOARD / CONTENEDORES INTERNOS
 ========================= */
 
 .admin-dashboard {
   padding: 10px 25px 30px;
 }
 
-/* =========================
-   STATS
-========================= */
-
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4,1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 20px;
   margin-bottom: 25px;
+}
+
+@media (max-width: 1400px) {
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .stat-card {
@@ -235,14 +243,10 @@
 }
 
 .stat-card p {
-  font-size: 30px;
+  font-size: 26px;
   font-weight: 800;
   color: #0d2b5c;
 }
-
-/* =========================
-   MIDDLE SECTION
-========================= */
 
 .middle-section {
   display: grid;
@@ -296,13 +300,9 @@
   font-size: 12px;
 }
 
-/* =========================
-   ACTION CARDS
-========================= */
-
 .bottom-section {
   display: grid;
-  grid-template-columns: repeat(2,1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   margin-bottom: 25px;
 }
@@ -352,13 +352,9 @@
   transform: translateY(-2px);
 }
 
-/* =========================
-   REPORTS
-========================= */
-
 .reports {
   display: grid;
-  grid-template-columns: repeat(3,1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 
@@ -386,28 +382,9 @@
   font-weight: 700;
 }
 
-/* =========================
-   LOADER
-========================= */
-
 .loader-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-}
-.fecha-hora-dashboard {
-  display: flex;
-  flex-direction: column;
-  margin-top: 12px;
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 500;
-  gap: 2px;
-}
-
-.fecha-hora-dashboard span:last-child {
-  font-size: 18px;
-  font-weight: 700;
-  color: #0d2b5c;
 }
