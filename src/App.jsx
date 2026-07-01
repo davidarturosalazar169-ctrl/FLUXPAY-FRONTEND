@@ -32,6 +32,7 @@ import Cuenta from "./Negocio/Cuenta";
 import ConfiguracionNegocio from "./Negocio/Configuracion";
 import Clientes from './Negocio/Clientes';
 
+
 function App() {
   return (
     <Routes>
