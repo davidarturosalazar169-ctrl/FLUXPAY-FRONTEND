@@ -35,6 +35,7 @@ import Clientes from './Negocio/Clientes';
 
 import StripeProvider from "./stripe/StripeProvider";
 import Checkout from "./stripe/Checkout";
+import Renderprueba from "./Renderprueba";
 
 function App() {
   return (
@@ -178,6 +179,7 @@ function App() {
   }
 />
 
+<Route path="/render-test" element={<Renderprueba />} />
     </Routes>
         
   );

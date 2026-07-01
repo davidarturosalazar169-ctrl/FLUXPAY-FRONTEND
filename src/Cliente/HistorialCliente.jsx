@@ -28,7 +28,7 @@ const HistorialCliente = () => {
   useEffect(() => {
     console.log("TOKEN:", token);
 
-    Axios.get("http://127.0.0.1:8000/api/historial", {
+    Axios.get("http://localhost/api/historial", {
       headers: {
         Authorization: `Bearer ${token}`,
       },

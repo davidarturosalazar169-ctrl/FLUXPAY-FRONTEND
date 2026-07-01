@@ -25,7 +25,7 @@ function ClienteTarjeta() {
   });
 
   useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/cliente/configuracion", {
+    axios.get("http://localhost/api/cliente/configuracion", {
       headers: {
         Authorization: `Bearer ${token}`
       }

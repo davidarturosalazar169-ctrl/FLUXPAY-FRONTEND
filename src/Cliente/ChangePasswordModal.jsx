@@ -36,7 +36,7 @@ const ChangePasswordModal = ({ show, handleClose, currentPassword, onSave }) => 
     // VALIDACIÓN REAL EN LARAVEL
 const token = localStorage.getItem("token");
 
-Axios.put("http://127.0.0.1:8000/api/cliente/actualizar", {
+Axios.put("http://localhost/api/cliente/actualizar", {
   current_password: current,
   password: newPass
 }, {
