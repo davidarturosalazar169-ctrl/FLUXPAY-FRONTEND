@@ -181,18 +181,6 @@ function App() {
     </StripeProvider>
   }
 />
-<Route
-  path="/qr-prueba"
-  element={<PruebaQR />}
-/>
-<Route
-    path="/qr-pagar-pedido"
-    element={<QrPagarPedido />}
-/>
-<Route
-    path="/pago-exitoso"
-    element={<PagoExitoso />}
-/>
     </Routes>
         
   );
