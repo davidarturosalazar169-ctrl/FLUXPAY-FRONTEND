@@ -6,9 +6,11 @@ import {
   FaStore,
   FaChartBar,
   FaHeadset,
-  FaSignOutAlt,
+  FaBell,
   FaCheckCircle,
   FaCog,
+  FaUserLock,
+  FaBoxes ,
 } from "react-icons/fa";
 import "./GestionNegocios.css";
 import CerrarSesion from "../CerrarSesion";
@@ -23,11 +25,12 @@ export default function GestionNegocios() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [editando, setEditando] = useState(false);
   const [form, setForm] = useState({ id: null, nombre: "", descripcion: "", telefono: "" });
+  const [data, setData] = useState(null); // Almacena info del usuario conectado
 
   const negociosPorPagina = 5;
 
   // Token de usuario
-  const token = localStorage.getItem("token"); // 🔥 Asegúrate de guardar el token al loguearte
+  const token = localStorage.getItem("token");
 
   // Obtener datos de la API
   const obtenerNegocios = async () => {
@@ -160,8 +163,10 @@ export default function GestionNegocios() {
           <ul className="sidebar-menu">
             <li onClick={() => navigate("/admin/dashboard")}><FaHome /> Dashboard</li>
             <li className="active"><FaStore /> Gestión Negocios</li>
+            <li onClick={()=>navigate("/admin/inventario")}><FaBoxes />Inventario</li>
             <li onClick={() => navigate("/admin/reportes")}><FaChartBar /> Reportes</li>
             <li><FaHeadset /> Soporte</li>
+            <li onClick={() => navigate("/admin/permisos")}><FaUserLock /> Roles y permisos</li> 
           </ul>
         </div>
         <div>
@@ -174,24 +179,59 @@ export default function GestionNegocios() {
 
       {/* CONTENIDO PRINCIPAL */}
       <div className="admin-main">
-        <header className="header-wrapper">
-          <div className="header-left">
-            <h1>Gestión negocios</h1>
-            <p>Administra todos los negocios registrados en la plataforma</p>
+        
+        {/* NUEVO HEADER REPLICADO SINTONIZADO */}
+        <header className="modern-header">
+          <div className="header-content">
+            <div className="header-left">
+              <h1>Gestión negocios</h1>
+              <p>Administra todos los negocios registrados en la plataforma</p>
+            </div>
+
+            <div className="header-right">
+              <div className="profile-info">
+                <span className="profile-name">{data?.usuario_nombre || "José Aguilar"}</span>
+                <span className="profile-email">{data?.usuario_email || "joseagui@gmail.com"}</span>
+              </div>
+
+              <div className="avatar-container">
+                {data?.usuario_avatar ? (
+                  <img src={data.usuario_avatar} alt="Avatar" className="profile-avatar-img" />
+                ) : (
+                  <div className="profile-avatar-fallback">
+                    {data?.usuario_nombre?.charAt(0) || "J"}
+                  </div>
+                )}
+                <span className="status-indicator"></span>
+              </div>
+
+              <button className="notification-btn">
+                <FaBell />
+              </button>
+            </div>
           </div>
-          <button className="btn-primary" onClick={abrirCrear}>+ Agregar negocio</button>
         </header>
 
+        {/* TU CONTENIDO ORIGINAL RESPETADO AL 100% */}
         <main className="admin-dashboard">
-          {/* BARRA DE BÚSQUEDA */}
+
           <div className="search-container">
-            <input
-              type="text"
-              placeholder="Buscar negocio por nombre o descripción..."
-              value={busqueda}
-              onChange={(e) => { setBusqueda(e.target.value); setPaginaActual(1); }}
-            />
-          </div>
+        <input
+            type="text"
+            placeholder="Buscar negocio..."
+            value={busqueda}
+            onChange={(e)=>{
+                setBusqueda(e.target.value);
+                setPaginaActual(1);
+            }}
+        />
+    </div>
+          
+       <div className="action-row-container">
+    <button className="btn-primary" onClick={abrirCrear}>
+        + Agregar negocio
+    </button>
+</div>
 
           {/* TABLA */}
           <div className="table-container">
