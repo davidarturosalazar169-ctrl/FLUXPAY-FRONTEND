@@ -35,6 +35,7 @@ import Clientes from './Negocio/Clientes';
 
 import StripeProvider from "./stripe/StripeProvider";
 import Checkout from "./stripe/Checkout";
+import Renderprueba from "./Renderprueba";
 
 import PruebaQR from "./QR/PruebaQR";
 import QrPagarPedido from "./QR/QrPagarPedido";

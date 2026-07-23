@@ -21,7 +21,7 @@ const ChangeEmailModal = ({ show, handleClose, currentPassword, onSave }) => {
 
 const token = localStorage.getItem("token");
 
-Axios.put("http://127.0.0.1:8000/api/cliente/actualizar", {
+Axios.put("http://localhost/api/cliente/actualizar", {
   current_password: password,
   correo: email
 }, {
