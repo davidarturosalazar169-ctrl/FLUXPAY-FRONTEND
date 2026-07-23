@@ -30,7 +30,7 @@ function ClienteConfiguracion() {
     foto: FotoPerfil
   });
   useEffect(() => {
-  Axios.get("http://127.0.0.1:8000/api/cliente/configuracion", {
+  Axios.get("http://localhost/api/cliente/configuracion", {
   headers: {
     Authorization: `Bearer ${token}`
   }
@@ -234,7 +234,7 @@ function ClienteConfiguracion() {
           label="Nuevo nombre"
           value={user.nombre}
   onSave={(value) => {
-    Axios.put("http://127.0.0.1:8000/api/cliente/actualizar", {
+    Axios.put("http://localhost/api/cliente/actualizar", {
       nombre: value
     }, {
       headers: {

@@ -76,7 +76,6 @@ export default function DashboardNegocio() {
           <h2 style={titleStyle}>Dashboard</h2>
           <p style={subtitleStyle}>Bienvenido a ImpulsaPay</p>
         </div>
-
         <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
           <select 
             value={mesSeleccionado} 
