@@ -15,9 +15,10 @@ export default function ProductosNegocio() {
   const [editandoId, setEditandoId] = useState(null);
   const [paginaActual, setPaginaActual] = useState(1);
   const registrosPorPagina = 7;
+  const API_BASE = import.meta.env.VITE_API_URL;
 
-  const API_URL = "http://localhost:8000/api/productos";
-  const MARCAS_URL = "http://localhost:8000/api/marcas";
+  const API_URL = `${API_BASE}/productos`;
+  const MARCAS_URL = `${API_BASE}/marcas`;
 
   const getAuthHeader = () => ({
     headers: { 

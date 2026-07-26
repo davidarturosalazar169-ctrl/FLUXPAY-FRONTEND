@@ -6,8 +6,10 @@ import {
 import axios from "axios";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+const API_BASE = import.meta.env.VITE_API_URL;
 
-const API_URL = "http://localhost:8000/api/movimientos";
+// const API_URL = "http://localhost:8000/api/movimientos";
+const API_URL = `${API_BASE}/movimientos`;
 
 export default function HistorialNegocio() {
     const [transacciones, setTransacciones] = useState([]);

@@ -172,6 +172,10 @@ export default function ConfiguracionAdmi() {
             </li>
             <li onClick={() => navigate("/admin/negocios")}>
               <FaStore /> Gestión Negocios
+              
+            </li>
+            <li onClick={() => navigate("/admin/inventario")}>
+              <FaBoxes /> Inventario
             </li>
             <li onClick={() => navigate("/admin/reportes")}>
               <FaChartBar /> Reportes globales
