@@ -41,7 +41,7 @@ function FormularioStripe(){
             confirmParams:{
 
                 return_url:
-                "http://localhost:5173/pago-exitoso"
+                "https://fluxpay-frontend-dun.vercel.app/pago-exitoso"
 
             }
 

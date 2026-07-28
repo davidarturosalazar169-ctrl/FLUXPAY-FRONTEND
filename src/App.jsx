@@ -191,6 +191,22 @@ function App() {
     </StripeProvider>
   }
 />
+      {/* ================= QR STRIPE ================= */}
+
+      <Route
+        path="/qr"
+        element={<PruebaQR />}
+      />
+
+      <Route
+        path="/qr-pagar-pedido"
+        element={<QrPagarPedido />}
+      />
+
+      <Route
+        path="/pago-exitoso"
+        element={<PagoExitoso />}
+      />
     </Routes>
         
   );

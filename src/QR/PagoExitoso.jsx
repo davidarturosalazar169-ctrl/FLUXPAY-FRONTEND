@@ -9,6 +9,8 @@ function PagoExitoso(){
 
     const [guardado,setGuardado] = useState(false);
 
+    const API_URL = import.meta.env.VITE_API_URL;
+
 
     const paymentIntent = params.get(
         "payment_intent"
@@ -27,7 +29,7 @@ function PagoExitoso(){
 
                 const respuesta = await axios.post(
 
-                    "http://127.0.0.1:8000/api/confirmar-pago-stripe",
+                    `${API_URL}/confirmar-pago-stripe`,
 
                     {
                         payment_intent: paymentIntent

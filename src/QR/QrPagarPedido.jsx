@@ -11,6 +11,8 @@ function PagarPedido(){
     const [pedido, setPedido] = useState(null);
 
     const [clientSecret, setClientSecret] = useState("");
+    const API_URL = import.meta.env.VITE_API_URL;
+
 
     const stripePromise = loadStripe(
     "pk_test_51TeVLCCE5hGDEGBLsDzQjc7DJsqcxbvNp4qP6fLZiPuYZxAVP1jk7nd9Ct3honQhf1ioA29PKWxV8cJvR1XzmEF2006OfrFvJW"
@@ -87,7 +89,7 @@ const datosPago = {
 
             const respuesta = await axios.post(
 
-                "http://127.0.0.1:8000/api/crear-checkout",
+                `${API_URL}/crear-checkout`,
 
                 datosPago
 

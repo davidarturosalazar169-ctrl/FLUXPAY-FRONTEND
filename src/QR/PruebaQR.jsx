@@ -11,6 +11,7 @@ import {
 
 
 function PruebaQR() {
+const FRONT_URL = import.meta.env.VITE_FRONT_URL;
 
 const [producto, setProducto] = useState({
     idproducto: "",
@@ -112,7 +113,7 @@ const generarQR = async () => {
 
     // Link hacia pantalla de pago
     const linkPago =
-    `http://localhost:5173/qr-pagar-pedido?pedido=${pedidoTemporal}`;
+     `${FRONT_URL}/qr-pagar-pedido?pedido=${pedidoTemporal}`;
 
 
     setCheckoutUrl(linkPago);
