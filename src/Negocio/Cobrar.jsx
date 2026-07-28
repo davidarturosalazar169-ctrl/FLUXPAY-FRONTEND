@@ -55,7 +55,12 @@ const handleSeleccionarMetodoQR = async () => {
             {
                 idnegocio: 1, // Cambiar por el negocio real
                 iduser: 1,    // Cambiar por el usuario real
-                productos: selectedProducts,
+productos: selectedProducts.map(p => ({
+    idproducto: p.id,
+    nombre: p.nombre,
+    cantidad: p.cant,
+    precio: p.precio
+})),
                 total: total
             }
         );
@@ -64,8 +69,7 @@ const handleSeleccionarMetodoQR = async () => {
 
         const pedidoId = respuesta.data.pedido_id;
 
-        const urlPago = "https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=${pedidoId}";
-
+const urlPago = `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=${pedidoId}`;
         console.log("URL DEL QR:", urlPago);
 
         setLinkDePagoCliente(urlPago);
