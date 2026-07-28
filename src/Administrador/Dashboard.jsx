@@ -2,10 +2,11 @@ import "./DashboardAdmin.css";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Chart from "react-apexcharts";
+import { tienePermiso } from "../utils/permisos";
 
 import {
   FaHome, FaStore, FaChartBar, FaHeadset, FaBell, FaDollarSign,
-  FaShoppingCart, FaUsers, FaCog
+  FaShoppingCart, FaUsers, FaCog,FaUserLock, FaBoxes 
 } from "react-icons/fa";
 import CerrarSesion from "../CerrarSesion";
 
@@ -13,15 +14,6 @@ export default function DashboardAdmin() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [fechaHora, setFechaHora] = useState(new Date());
-
-useEffect(() => {
-  const timer = setInterval(() => {
-    setFechaHora(new Date());
-  }, 1000);
-
-  return () => clearInterval(timer);
-}, []);
 
   useEffect(() => {
     fetchDashboard();
@@ -59,18 +51,6 @@ useEffect(() => {
       </span>
     );
   };
-  const fechaActual = fechaHora.toLocaleDateString("es-MX", {
-  weekday: "long",
-  year: "numeric",
-  month: "long",
-  day: "numeric"
-});
-
-const horaActual = fechaHora.toLocaleTimeString("es-MX", {
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit"
-});
 
   const chartData = {
     series: [{ name: "Ingresos", data: data?.grafica?.map(i => parseFloat(i.total).toFixed(2)) || [] }],
@@ -82,8 +62,8 @@ const horaActual = fechaHora.toLocaleTimeString("es-MX", {
       fill: { type: "gradient", gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05 } },
       xaxis: {
         categories: data?.grafica?.map(i => {
-            const d = new Date(i.fecha + "T00:00:00");
-            return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+          const d = new Date(i.fecha + "T00:00:00");
+          return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
         }) || [],
         labels: { style: { fontSize: '11px', colors: '#7a8ca5' }, hideOverlappingLabels: true },
         axisBorder: { show: false }
@@ -92,6 +72,9 @@ const horaActual = fechaHora.toLocaleTimeString("es-MX", {
       tooltip: { y: { formatter: (val) => formatMoney(val) } }
     },
   };
+
+  console.log("Permisos:", JSON.parse(localStorage.getItem("permisos")));
+console.log("¿Tiene permiso reportes_ver?", tienePermiso("reportes_ver"));
 
   if (loading) {
     return (
@@ -111,8 +94,10 @@ const horaActual = fechaHora.toLocaleTimeString("es-MX", {
           <ul className="sidebar-menu">
             <li className="active" onClick={() => navigate("/admin/dashboard")}><FaHome /> Dashboard</li>
             <li onClick={() => navigate("/admin/negocios")}><FaStore /> Gestión Negocios</li>
+              <li onClick={()=>navigate("/admin/inventario")}><FaBoxes />Inventario</li>
             <li onClick={() => navigate("/admin/reportes")}><FaChartBar /> Reportes globales</li>
             <li onClick={() => navigate("/admin/soporte")}><FaHeadset /> Soporte</li>
+           <li onClick={() => navigate("/admin/permisos")}><FaUserLock /> Roles y permisos</li> 
           </ul>
         </div>
         <div>
@@ -124,48 +109,39 @@ const horaActual = fechaHora.toLocaleTimeString("es-MX", {
       </aside>
 
       <div className="admin-main">
-        {/* HEADER CON DISEÑO EXACTO DE LA IMAGEN */}
+        {/* HEADER ADAPTADO EXACTAMENTE A LA SEGUNDA IMAGEN */}
         <header className="modern-header">
-  <div className="header-content">
-    <div className="header-left">
-  <span className="dashboard-badge">
-    Panel Administrativo
-  </span>
+          <div className="header-content">
+            <div className="header-left">
+              <h1>Dashboard Administrador</h1>
+              <p>Administra tus ventas y productos fácilmente</p>
+            </div>
+            
 
-  <h1>Dashboard</h1>
+            <div className="header-right">
+              <div className="profile-info">
+                <span className="profile-name">{data?.usuario_nombre || "José Aguilar"}</span>
+                <span className="profile-email">{data?.usuario_email || "joseagui@gmail.com"}</span>
+              </div>
 
-  <p>
-    Bienvenido nuevamente,
-    <strong>
-      {" "}
-      {data?.usuario_nombre?.split(" ")[0] || "Administrador"}
-    </strong>
-  </p>
+              <div className="avatar-container">
+                {data?.usuario_avatar ? (
+                  <img src={data.usuario_avatar} alt="Avatar" className="profile-avatar-img" />
+                ) : (
+                  <div className="profile-avatar-fallback">
+                    {data?.usuario_nombre?.charAt(0) || "J"}
+                  </div>
+                )}
+                <span className="status-indicator"></span>
+              </div>
 
-  <div className="fecha-hora-dashboard">
-    <span>{fechaActual}</span>
-    <span>{horaActual}</span>
-  </div>
-</div>
+              <button className="notification-btn">
+                <FaBell />
+              </button>
+            </div>
+          </div>
+        </header>
 
-    <div className="header-right">
-      <button className="notification-btn">
-        <FaBell />
-      </button>
-
-      <div className="profile-card">
-        <div className="profile-avatar">
-          {data?.usuario_nombre?.charAt(0) || "A"}
-        </div>
-
-        <div className="profile-info">
-          <span>{data?.usuario_nombre || "Administrador"}</span>
-          <small>{data?.usuario_email}</small>
-        </div>
-      </div>
-    </div>
-  </div>
-</header>
 
         <main className="admin-dashboard">
           <div className="stats-grid">
@@ -186,9 +162,9 @@ const horaActual = fechaHora.toLocaleTimeString("es-MX", {
               <p>{formatMoney(data?.ingresosTotales)}</p>
             </div>
             <div className="stat-card">
-  <h4>Tickets emitidos</h4>
-  <p>{data?.ticketsTotales || 0}</p>
-</div>
+              <h4>Tickets emitidos</h4>
+              <p>{data?.ticketsTotales || 0}</p>
+            </div>
           </div>
 
           <div className="middle-section">

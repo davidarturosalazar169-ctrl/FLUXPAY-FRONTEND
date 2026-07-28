@@ -7,7 +7,8 @@ import {
   FaStore,
   FaChartBar,
   FaHeadset,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaUserLock,
 } from "react-icons/fa";
 
 export default function DetalleNegocio() {
@@ -92,6 +93,9 @@ export default function DetalleNegocio() {
 
             <li>
               <FaHeadset /> Soporte
+            </li>
+             <li>
+              <FaHeadset /> Roles y permisos
             </li>
           </ul>
         </div>

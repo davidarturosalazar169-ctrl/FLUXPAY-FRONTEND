@@ -7,7 +7,10 @@ import {
   FaStore,
   FaChartBar,
   FaHeadset,
-  FaCog
+  FaCog,
+  FaBell,
+  FaUserLock,
+  FaBoxes,
 } from "react-icons/fa";
 import CerrarSesion from "../CerrarSesion";
 
@@ -18,6 +21,7 @@ export default function Soporte() {
   const [paginaActual, setPaginaActual] = useState(1);
   const ticketsPorPagina = 5;
   const [tickets, setTickets] = useState([]);
+  const [data, setData] = useState(null); // Estado unificado para la información del usuario conectado
 
   const cargarTickets = () => {
     fetch("http://127.0.0.1:8000/api/tickets", {
@@ -110,6 +114,7 @@ export default function Soporte() {
 
   return (
     <div className="admin-layout">
+      {/* SIDEBAR */}
       <aside className="admin-sidebar">
         <div>
           <div className="admin-logo-container">
@@ -118,8 +123,10 @@ export default function Soporte() {
           <ul className="sidebar-menu">
             <li onClick={() => navigate("/admin/dashboard")}><FaHome /> Dashboard</li>
             <li onClick={() => navigate("/admin/negocios")}><FaStore /> Gestión Negocios</li>
+            <li onClick={() => navigate("/admin/inventario")}><FaBoxes /> Inventario</li>
             <li onClick={() => navigate("/admin/reportes")}><FaChartBar /> Reportes globales</li>
             <li className="active"><FaHeadset /> Soporte</li>
+            <li onClick={() => navigate("/admin/permisos")}><FaUserLock /> Roles y permisos</li> 
           </ul>
         </div>
         <div>
@@ -130,21 +137,42 @@ export default function Soporte() {
         </div>
       </aside>
 
+      {/* CONTENIDO PRINCIPAL */}
       <div className="admin-main">
-        <header className="header-wrapper">
-          <div className="header-left">
-            <h1>Centro soporte</h1>
-            <p>Gestión dinámica de tickets</p>
-          </div>
-          <div className="header-user">
-            <img src="https://i.pravatar.cc/40" alt="user" />
-            <div>
-              <strong>Alexander Castillo</strong>
-              <small>alexander.castillo@gmail.com</small>
+        
+        {/* HEADER UNIFICADO (Idéntica estructura y tipografía a juego) */}
+        <header className="modern-header">
+          <div className="header-content">
+            <div className="header-left">
+              <h1>Centro soporte</h1>
+              <p>Gestión dinámica de tickets</p>
+            </div>
+
+            <div className="header-right">
+              <div className="profile-info">
+                <span className="profile-name">{data?.usuario_nombre || "José Aguilar"}</span>
+                <span className="profile-email">{data?.usuario_email || "joseagui@gmail.com"}</span>
+              </div>
+
+              <div className="avatar-container">
+                {data?.usuario_avatar ? (
+                  <img src={data.usuario_avatar} alt="Avatar" className="profile-avatar-img" />
+                ) : (
+                  <div className="profile-avatar-fallback">
+                    {data?.usuario_nombre?.charAt(0) || "J"}
+                  </div>
+                )}
+                <span className="status-indicator"></span>
+              </div>
+
+              <button className="notification-btn">
+                <FaBell />
+              </button>
             </div>
           </div>
         </header>
 
+        {/* TU CONTENIDO ORIGINAL RESPETADO AL 100% */}
         <main className="admin-dashboard">
           <div className="soporte-stats">
             <div>Total consultas: {tickets.length}</div>

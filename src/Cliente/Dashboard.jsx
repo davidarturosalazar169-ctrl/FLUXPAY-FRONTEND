@@ -29,7 +29,7 @@ const [user, setUser] = useState({
 });
 
 useEffect(() => {
-  Axios.get("http://127.0.0.1:8000/api/cliente/configuracion", {
+  Axios.get("http://localhost/api/cliente/configuracion", {
     headers: {
       Authorization: `Bearer ${token}`
     }

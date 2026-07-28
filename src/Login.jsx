@@ -12,7 +12,7 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/login", {
+      const res = await fetch("http://localhost/api/login", {
         
         method: "POST",
         headers: {
@@ -25,19 +25,28 @@ export default function Login() {
       });
 
       const data = await res.json();
+      
 
       console.log("Respuesta login:", data); 
+      
 
       if (res.ok) {
-        
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify({
-  ...data.user,
-  idrol: data.rol 
-}));
 
+          // Guardar token
+localStorage.setItem("token", data.token);
+
+// Guardar toda la información del usuario
+localStorage.setItem("user", JSON.stringify(data.user));
+
+// Guardar permisos
+localStorage.setItem(
+  "permisos",
+  JSON.stringify(data.user.permisos)
+);
+        
+   
        
-        switch (data.rol) {
+        switch (data.user.idrol) {
 
           case 1:
             navigate("/admin/dashboard");

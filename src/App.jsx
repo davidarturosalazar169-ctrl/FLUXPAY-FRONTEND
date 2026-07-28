@@ -18,7 +18,8 @@ import DetalleNegocio from "./Administrador/DetalleNegocio";
 import ReportesGlobales from "./Administrador/ReportesGlobales";
 import Soporte from "./Administrador/Soporte";
 import ConfiguracionAdmi from "./Administrador/ConfiguracionAdmi";
-
+import RolesPermisos from "./Administrador/RolesPermisos";
+import InventarioAdmin from "./Administrador/InventarioAdmin";
 /* ================= NEGOCIO ================= */
 import DashboardNegocio from "./Negocio/Dashboard";
 import ProductosNegocio from "./Negocio/Productos";
@@ -37,7 +38,11 @@ import PagoTerminado from "./Negocio/PagoTerminado";
 
 import StripeProvider from "./stripe/StripeProvider";
 import Checkout from "./stripe/Checkout";
+import Renderprueba from "./Renderprueba";
 
+import PruebaQR from "./QR/PruebaQR";
+import QrPagarPedido from "./QR/QrPagarPedido";
+import PagoExitoso from "./QR/PagoExitoso";
 function App() {
   return (
     <Routes>
@@ -137,6 +142,12 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/admin/permisos" element={<RolesPermisos />} />
+
+      <Route
+    path="/admin/inventario"
+    element={<InventarioAdmin/>}
+/>
 
       <Route
         path="/admin/configuracion"
