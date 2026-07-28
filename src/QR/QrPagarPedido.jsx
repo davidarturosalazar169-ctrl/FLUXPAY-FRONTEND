@@ -19,7 +19,11 @@ function PagarPedido(){
 );
 
 
-    useEffect(()=>{
+useEffect(()=>{
+
+
+    const cargarPedido = async()=>{
+
 
         const params = new URLSearchParams(
             window.location.search
@@ -29,25 +33,74 @@ function PagarPedido(){
         const idPedido = params.get("pedido");
 
 
+
         if(idPedido){
 
-            const datos = localStorage.getItem(
-                `pedido_${idPedido}`
-            );
+
+            try{
 
 
-            if(datos){
+                const respuesta = await axios.get(
 
-                setPedido(
-                    JSON.parse(datos)
+                    `${API_URL}/pedido/${idPedido}`
+
                 );
 
+
+
+                console.log(
+                    "Pedido desde BD:",
+                    respuesta.data
+                );
+
+
+
+                setPedido({
+
+                    productos: respuesta.data.productos.map(
+                        producto => ({
+
+                            idproducto: producto.id,
+
+                            nombre: producto.producto_nombre,
+
+                            cantidad: producto.cantidad,
+
+                            precio: producto.precio,
+
+                            subtotal:
+                            producto.cantidad *
+                            producto.precio
+
+                        })
+                    ),
+
+                    total: respuesta.data.pedido.total
+
+                });
+
+
+
+            }catch(error){
+
+
+                console.log(error);
+
             }
+
 
         }
 
 
-    },[]);
+    };
+
+
+
+    cargarPedido();
+
+
+
+},[]);
 
 
 
