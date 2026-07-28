@@ -1,19 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { 
   FaChartLine, FaCookie, FaCandyCane, FaWineBottle, 
-  FaAppleAlt, FaFileDownload 
+  FaAppleAlt, FaFileDownload, FaWallet, FaQrcode, FaCreditCard, FaExchangeAlt 
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import axios from "axios";
 
 export default function DashboardNegocio() {
   const [mesSeleccionado, setMesSeleccionado] = useState("Todos");
-  const [activeTooltip, setActiveTooltip] = useState(null);
+  const [activeIndex, setActiveIndex] = useState(null);
 
-  // ESTADOS
+  // ESTADOS DEL BACKEND
   const [productos, setProductos] = useState([]);
   const [ingresos, setIngresos] = useState([]);
-  const [resumen, setResumen] = useState({ total: 0, efectivo: 0, qr: 0 });
+  const [resumen, setResumen] = useState({ 
+    total: 0, 
+    efectivo: 0, 
+    qr: 0, 
+    tarjeta: 0, 
+    transferencia: 0 
+  });
 
   // 🔌 CONEXIÓN A LARAVEL
   useEffect(() => {
@@ -40,12 +46,60 @@ export default function DashboardNegocio() {
       .catch(err => console.error("Error resumen:", err));
   }, []);
 
-  const efectivoGrafica = parseFloat(ingresos.find(i => i.metodo_pago === "efectivo")?.total || 0);
-  const qrGrafica = parseFloat(ingresos.find(i => i.metodo_pago === "qr")?.total || 0);
-  const totalGrafica = (efectivoGrafica + qrGrafica) || 1;
+  // PROCESAMIENTO MATEMÁTICO DE LOS INGRESOS
+  const efectivo = parseFloat(ingresos.find(i => i.metodo_pago?.toLowerCase() === "efectivo")?.total || 0);
+  const qr = parseFloat(ingresos.find(i => i.metodo_pago?.toLowerCase() === "qr")?.total || 0);
+  const tarjeta = parseFloat(ingresos.find(i => i.metodo_pago?.toLowerCase() === "tarjeta")?.total || 0);
+  const transferencia = parseFloat(ingresos.find(i => i.metodo_pago?.toLowerCase() === "transferencia")?.total || 0);
+
+  const totalGrafica = (efectivo + qr + tarjeta + transferencia) || 1;
+
+  // Datos organizados con colores premium desaturados
+  const dataMetodos = [
+    { name: "Efectivo", value: efectivo, color: "#3b82f6", icon: <FaWallet /> },
+    { name: "Código QR", value: qr, color: "#64748b", icon: <FaQrcode /> },
+    { name: "Tarjeta", value: tarjeta, color: "#10b981", icon: <FaCreditCard /> },
+    { name: "Transferencia", value: transferencia, color: "#f59e0b", icon: <FaExchangeAlt /> }
+  ];
+
+  // Función matemática para generar los arcos del Diagrama de Pasteles (SVG Path)
+  let cumulativeAngle = 0;
+  const generatePieSegments = () => {
+    return dataMetodos.map((item, index) => {
+      const percentage = item.value / totalGrafica;
+      if (percentage === 0) return null;
+
+      const angle = percentage * 360;
+      
+      // Coordenadas del arco en círculo de radio 50
+      const x1 = 70 + 50 * Math.cos((cumulativeAngle - 90) * Math.PI / 180);
+      const y1 = 70 + 50 * Math.sin((cumulativeAngle - 90) * Math.PI / 180);
+      
+      cumulativeAngle += angle;
+      
+      const x2 = 70 + 50 * Math.cos((cumulativeAngle - 90) * Math.PI / 180);
+      const y2 = 70 + 50 * Math.sin((cumulativeAngle - 90) * Math.PI / 180);
+      
+      const largeArcFlag = angle > 180 ? 1 : 0;
+      
+      // Comando de dibujo SVG
+      const pathData = `M 70 70 L ${x1} ${y1} A 50 50 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+
+      return {
+        pathData,
+        color: item.color,
+        name: item.name,
+        percentage: (percentage * 100).toFixed(1),
+        value: item.value,
+        index
+      };
+    }).filter(Boolean);
+  };
+
+  const pieSegments = generatePieSegments();
 
   const getIcon = (name) => {
-    const iconStyle = { fontSize: "1.4rem", marginRight: "12px" };
+    const iconStyle = { fontSize: "1.2rem", marginRight: "12px" };
     switch (name) {
       case "Galletas": return <FaCookie style={{ ...iconStyle, color: "#475569" }} />;
       case "Sabritas": return <FaAppleAlt style={{ ...iconStyle, color: "#1e293b" }} />;
@@ -57,9 +111,11 @@ export default function DashboardNegocio() {
 
   const exportToExcel = () => {
     const worksheet1 = XLSX.utils.json_to_sheet([
-      { Concepto: "Total", Valor: resumen.total },
+      { Concepto: "Total General", Valor: resumen.total },
       { Concepto: "Efectivo", Valor: resumen.efectivo },
-      { Concepto: "QR", Valor: resumen.qr }
+      { Concepto: "QR", Valor: resumen.qr },
+      { Concepto: "Tarjeta", Valor: resumen.tarjeta },
+      { Concepto: "Transferencia", Valor: resumen.transferencia }
     ]);
     const worksheet2 = XLSX.utils.json_to_sheet(productos);
     const workbook = XLSX.utils.book_new();
@@ -73,8 +129,8 @@ export default function DashboardNegocio() {
       {/* HEADER */}
       <div style={headerStyle}>
         <div>
-          <h2 style={titleStyle}>Dashboard</h2>
-          <p style={subtitleStyle}>Bienvenido a ImpulsaPay</p>
+          <h2 style={titleStyle}>Panel de Control</h2>
+          <p style={subtitleStyle}>Métricas e inventario de ImpulsaPay</p>
         </div>
         <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
           <select 
@@ -93,33 +149,47 @@ export default function DashboardNegocio() {
         </div>
       </div>
 
-      {/* CARDS SUPERIORES */}
+      {/* TARJETAS SUPERIORES CON SEPARACIÓN FLUIDA INTELIGENTE */}
       <div style={metricsRowStyle}>
         <div style={metricCardStyle}>
           <div style={metricHeader}>
-            <span style={metricLabelStyle}>Ingresos Efectivo</span>
-            <FaChartLine color="#94a3b8" />
+            <span style={metricLabelStyle}>Efectivo</span>
+            <FaWallet color="#3b82f6" size={14} />
           </div>
-          <h3 style={metricValueStyle}>${resumen.efectivo.toLocaleString()}.00</h3>
+          <h3 style={metricValueStyle}>${(resumen.efectivo || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</h3>
         </div>
         <div style={metricCardStyle}>
           <div style={metricHeader}>
-            <span style={metricLabelStyle}>Ingresos QR</span>
-            <FaChartLine color="#94a3b8" />
+            <span style={metricLabelStyle}>Código QR</span>
+            <FaQrcode color="#64748b" size={14} />
           </div>
-          <h3 style={metricValueStyle}>${resumen.qr.toLocaleString()}.00</h3>
+          <h3 style={metricValueStyle}>${(resumen.qr || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</h3>
         </div>
-        <div style={{ ...metricCardStyle, borderLeft: "5px solid #0f172a" }}>
+        <div style={metricCardStyle}>
           <div style={metricHeader}>
-            <span style={metricLabelStyle}>Total General</span>
-            <FaChartLine color="#0f172a" />
+            <span style={metricLabelStyle}>Tarjeta</span>
+            <FaCreditCard color="#10b981" size={14} />
           </div>
-          <h3 style={{ ...metricValueStyle, color: "#0f172a" }}>${resumen.total.toLocaleString()}.00</h3>
+          <h3 style={{ ...metricValueStyle, color: "#065f46" }}>${(resumen.tarjeta || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</h3>
+        </div>
+        <div style={metricCardStyle}>
+          <div style={metricHeader}>
+            <span style={metricLabelStyle}>Transferencia</span>
+            <FaExchangeAlt color="#f59e0b" size={14} />
+          </div>
+          <h3 style={{ ...metricValueStyle, color: "#92400e" }}>${(resumen.transferencia || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</h3>
+        </div>
+        <div style={{ ...metricCardStyle, background: "#0f172a", borderColor: "#0f172a" }}>
+          <div style={metricHeader}>
+            <span style={{ ...metricLabelStyle, color: "#94a3b8" }}>Total General</span>
+            <FaChartLine color="#10b981" size={14} />
+          </div>
+          <h3 style={{ ...metricValueStyle, color: "#ffffff", fontSize: "21px" }}>${(resumen.total || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</h3>
         </div>
       </div>
 
       <div style={mainGridStyle}>
-        {/* TABLA INVENTARIO */}
+        {/* INVENTARIO */}
         <div style={cardStyle}>
           <h4 style={cardTitleStyle}>Inventario Actual</h4>
           <table style={tableStyle}>
@@ -138,7 +208,7 @@ export default function DashboardNegocio() {
                   </td>
                   <td style={{ ...tdStyle, textAlign: "center", fontWeight: "700" }}>{item.units}</td>
                   <td style={{ ...tdStyle, textAlign: "right", fontWeight: "800", color: "#0f172a" }}>
-                    ${item.income.toLocaleString()}.00
+                    ${parseFloat(item.income).toLocaleString(undefined, {minimumFractionDigits: 2})}
                   </td>
                 </tr>
               ))}
@@ -146,63 +216,117 @@ export default function DashboardNegocio() {
           </table>
         </div>
 
-        {/* GRÁFICA MÉTODOS PAGO */}
+        {/* 📊 DIAGRAMA DE PASTELES PROFESIONAL CON MEDIDAS */}
         <div style={cardStyle}>
-          <h4 style={cardTitleStyle}>Distribución de Pagos</h4>
-          <div style={chartContainer}>
-            <div 
-              style={{ ...barStyle, height: `${(efectivoGrafica / totalGrafica) * 100}%`, background: "#0f172a" }}
-              onMouseEnter={() => setActiveTooltip("ef")} onMouseLeave={() => setActiveTooltip(null)}
-            >
-              {activeTooltip === "ef" && <span style={tooltipStyle}>${efectivoGrafica}</span>}
-            </div>
-            <div 
-              style={{ ...barStyle, height: `${(qrGrafica / totalGrafica) * 100}%`, background: "#94a3b8" }}
-              onMouseEnter={() => setActiveTooltip("qr")} onMouseLeave={() => setActiveTooltip(null)}
-            >
-              {activeTooltip === "qr" && <span style={tooltipStyle}>${qrGrafica}</span>}
-            </div>
+          <h4 style={cardTitleStyle}>Diagrama de Pasteles</h4>
+          
+          <div style={pieContainerStyle}>
+            <svg width="100%" height="100%" viewBox="0 0 140 140">
+              {pieSegments.map((segment) => {
+                const isSelected = activeIndex === segment.index;
+                return (
+                  <path
+                    key={segment.index}
+                    d={segment.pathData}
+                    fill={segment.color}
+                    style={{
+                      transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s",
+                      transformOrigin: "70px 70px",
+                      transform: isSelected ? "scale(1.06)" : "scale(1)",
+                      cursor: "pointer",
+                      opacity: activeIndex !== null && !isSelected ? 0.4 : 1
+                    }}
+                    onMouseEnter={() => setActiveIndex(segment.index)}
+                    onMouseLeave={() => setActiveIndex(null)}
+                  />
+                );
+              })}
+            </svg>
+            
+            {/* Tooltip flotante con medidas precisas en el centro */}
+            {activeIndex !== null && (
+              <div style={pieTooltipCenter}>
+                <span style={tooltipLabel}>{dataMetodos[activeIndex].name}</span>
+                <span style={tooltipValue}>
+                  ${dataMetodos[activeIndex].value.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+            )}
           </div>
-          <div style={legendStyle}>
-            <div style={legendItem}><span style={{ ...dot, background: "#0f172a" }}></span> Efectivo: {((efectivoGrafica / totalGrafica) * 100).toFixed(1)}%</div>
-            <div style={legendItem}><span style={{ ...dot, background: "#94a3b8" }}></span> QR: {((qrGrafica / totalGrafica) * 100).toFixed(1)}%</div>
+
+          {/* REFERENCIAS / LEYENDA DEL DIAGRAMA */}
+          <div style={legendListStyle}>
+            {dataMetodos.map((metodo, index) => {
+              const pct = ((metodo.value / totalGrafica) * 100).toFixed(1);
+              const isSelected = activeIndex === index;
+
+              return (
+                <div 
+                  key={index}
+                  style={{
+                    ...legendItemStyle,
+                    backgroundColor: isSelected ? "#f8fafc" : "transparent",
+                    borderLeft: `4px solid ${isSelected ? metodo.color : "transparent"}`
+                  }}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  onMouseLeave={() => setActiveIndex(null)}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <div style={{ ...colorDot, backgroundColor: metodo.color }} />
+                    <span style={legendNameText}>{metodo.name}</span>
+                  </div>
+                  <div style={legendValues}>
+                    <span style={legendPercentText}>{pct}%</span>
+                    <span style={legendSubAmt}>${metodo.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+
         </div>
       </div>
     </section>
   );
 }
 
-// --- SISTEMA DE DISEÑO (UNIFICADO CON CUENTA.JS) ---
+// --- SISTEMA DE ARQUITECTURA VISUAL ---
 const containerStyle = { backgroundColor: "#f8fafc", minHeight: "100vh", padding: "40px", fontFamily: "'Inter', sans-serif" };
 const headerStyle = { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "35px" };
-const titleStyle = { color: "#0f172a", fontSize: "26px", fontWeight: "800", margin: 0 };
-const subtitleStyle = { color: "#64748b", fontSize: "16px", margin: "4px 0 0 0" };
+const titleStyle = { color: "#0f172a", fontSize: "24px", fontWeight: "800", margin: 0 };
+const subtitleStyle = { color: "#64748b", fontSize: "14px", margin: "4px 0 0 0" };
 
-const selectStyle = { padding: "12px", borderRadius: "10px", border: "1px solid #e2e8f0", fontSize: "15px", fontWeight: "600", color: "#0f172a", outline: "none", cursor: "pointer" };
-const btnExportStyle = { display: "flex", alignItems: "center", gap: "10px", background: "#0f172a", color: "white", border: "none", padding: "12px 24px", borderRadius: "10px", cursor: "pointer", fontWeight: "700", fontSize: "15px" };
+const selectStyle = { padding: "10px 14px", borderRadius: "10px", border: "1px solid #e2e8f0", fontSize: "13px", fontWeight: "600", color: "#0f172a", outline: "none", cursor: "pointer", backgroundColor: "#fff" };
+const btnExportStyle = { display: "flex", alignItems: "center", gap: "10px", background: "#0f172a", color: "white", border: "none", padding: "11px 18px", borderRadius: "10px", cursor: "pointer", fontWeight: "700", fontSize: "13px" };
 
-const metricsRowStyle = { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "25px", marginBottom: "35px" };
-const metricCardStyle = { background: "white", padding: "26px", borderRadius: "18px", border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.02)" };
-const metricHeader = { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" };
-const metricLabelStyle = { fontSize: "15px", color: "#64748b", fontWeight: "600" };
-const metricValueStyle = { fontSize: "28px", fontWeight: "800", color: "#334155", margin: 0 };
+// SOLUCIÓN AL ACOMODO APRETADO: Rejilla adaptativa con ancho mínimo controlado (Evita encimamientos)
+const metricsRowStyle = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "16px", marginBottom: "35px" };
+const metricCardStyle = { background: "white", padding: "20px 18px", borderRadius: "16px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", justifyContent: "space-between" };
+const metricHeader = { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" };
+const metricLabelStyle = { fontSize: "11px", color: "#64748b", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px" };
+const metricValueStyle = { fontSize: "20px", fontWeight: "800", color: "#0f172a", margin: 0, whiteSpace: "nowrap" };
 
-const mainGridStyle = { display: "grid", gridTemplateColumns: "1.8fr 1fr", gap: "30px" };
-const cardStyle = { background: "white", padding: "28px", borderRadius: "20px", border: "1px solid #e2e8f0" };
-const cardTitleStyle = { margin: "0 0 25px 0", fontSize: "15px", color: "#64748b", fontWeight: "800", textTransform: 'uppercase', letterSpacing: '1px' };
+const mainGridStyle = { display: "grid", gridTemplateColumns: "1.5fr 1.2fr", gap: "30px" };
+const cardStyle = { background: "white", padding: "30px", borderRadius: "20px", border: "1px solid #e2e8f0", boxShadow: "0 4px 20px -2px rgba(0,0,0,0.01)" };
+const cardTitleStyle = { margin: "0 0 25px 0", fontSize: "13px", color: "#475569", fontWeight: "800", textTransform: 'uppercase', letterSpacing: '1px' };
 
 const tableStyle = { width: "100%", borderCollapse: "collapse" };
-const thRowStyle = { borderBottom: "1px solid #f1f5f9" };
-const thStyle = { padding: "15px", textAlign: "left", color: "#94a3b8", fontSize: "12px", fontWeight: "800", letterSpacing: '1px' };
-const trStyle = { borderBottom: "1px solid #f8fafc" };
-const tdStyle = { padding: "18px 15px", fontSize: "15px", color: "#475569" };
+const thRowStyle = { borderBottom: "2px solid #f1f5f9" };
+const thStyle = { padding: "12px 10px", textAlign: "left", color: "#94a3b8", fontSize: "11px", fontWeight: "800" };
+const trStyle = { borderBottom: "1px solid #f1f5f9" };
+const tdStyle = { padding: "16px 10px", fontSize: "14px", color: "#334155" };
 const nameText = { ...tdStyle, fontWeight: "600", color: "#0f172a", display: "flex", alignItems: "center" };
 
-const chartContainer = { height: "220px", display: "flex", alignItems: "flex-end", justifyContent: "center", gap: "40px", borderBottom: "2px solid #f1f5f9", paddingBottom: "10px" };
-const barStyle = { position: "relative", width: "60px", borderRadius: "8px 8px 2px 2px", transition: "all 0.3s ease", cursor: "pointer" };
-const tooltipStyle = { position: "absolute", top: "-35px", left: "50%", transform: "translateX(-50%)", background: "#0f172a", color: "white", padding: "5px 10px", borderRadius: "6px", fontSize: "12px", fontWeight: "bold" };
+// ESTILOS DE LA NUEVA GRÁFICA DE PASTEL (PIE CHART)
+const pieContainerStyle = { position: "relative", width: "180px", height: "180px", margin: "0 auto 30px auto" };
+const pieTooltipCenter = { position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: "rgba(15, 23, 42, 0.95)", color: "white", padding: "8px 12px", borderRadius: "8px", display: "flex", flexDirection: "column", alignItems: "center", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.3)", pointerEvents: "none", zIndex: 10 };
+const tooltipLabel = { fontSize: "10px", fontWeight: "700", textTransform: "uppercase", opacity: 0.8, letterSpacing: "0.5px" };
+const tooltipValue = { fontSize: "12px", fontWeight: "800", marginTop: "2px", whiteSpace: "nowrap" };
 
-const legendStyle = { marginTop: "25px", display: "flex", flexDirection: "column", gap: "12px" };
-const legendItem = { display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", fontWeight: "600", color: "#475569" };
-const dot = { width: "10px", height: "10px", borderRadius: "50%" };
+const legendListStyle = { display: "flex", flexDirection: "column", gap: "6px" };
+const legendItemStyle = { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "10px", transition: "all 0.2s ease", cursor: "pointer" };
+const colorDot = { width: "10px", height: "10px", borderRadius: "50%" };
+const legendNameText = { fontSize: "13px", fontWeight: "600", color: "#334155" };
+const legendValues = { display: "flex", flexDirection: "column", textAlign: "right" };
+const legendPercentText = { fontSize: "13px", fontWeight: "800", color: "#0f172a" };
+const legendSubAmt = { fontSize: "11px", color: "#94a3b8", fontWeight: "500", marginTop: "1px" };
