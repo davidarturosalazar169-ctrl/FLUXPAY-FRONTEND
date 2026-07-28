@@ -18,6 +18,7 @@ import CerrarSesion from "../CerrarSesion";
 export default function InventarioAdmin() {
 
     const navigate = useNavigate();
+     const API_URL = import.meta.env.VITE_API_URL;
 
 const [inventario, setInventario] = useState([]);
 const [resumen, setResumen] = useState({
@@ -36,7 +37,7 @@ const cargarInventario = async () => {
 
     try{
 
-        const res = await fetch("http://127.0.0.1:8000/api/inventario",{
+        const res = await fetch(`${API_URL}/inventario`,{
             headers:{
                 Authorization:"Bearer "+localStorage.getItem("token"),
                 Accept:"application/json"

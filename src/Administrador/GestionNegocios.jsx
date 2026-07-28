@@ -17,7 +17,7 @@ import CerrarSesion from "../CerrarSesion";
 
 export default function GestionNegocios() {
   const navigate = useNavigate();
-
+  const API_URL = import.meta.env.VITE_API_URL;
   // Estados
   const [negociosData, setNegociosData] = useState([]);
   const [busqueda, setBusqueda] = useState("");
@@ -35,7 +35,7 @@ export default function GestionNegocios() {
   // Obtener datos de la API
   const obtenerNegocios = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/negocios", {
+      const res = await fetch(`${API_URL}/negocios`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const data = await res.json();

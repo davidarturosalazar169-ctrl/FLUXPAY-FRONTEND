@@ -21,6 +21,7 @@ import CerrarSesion from "../CerrarSesion";
 
 function ReportesGlobales() {
   const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL;
   const [filtroActivo, setFiltroActivo] = useState("Día");
   const [busqueda, setBusqueda] = useState("");
   const [data, setData] = useState(null); // Misma lógica de estado del usuario que en Gestión de Negocios

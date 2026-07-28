@@ -14,6 +14,7 @@ export default function DashboardAdmin() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+    const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     fetchDashboard();
@@ -21,7 +22,7 @@ export default function DashboardAdmin() {
 
   const fetchDashboard = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/dashboard", {
+      const res = await fetch(`${API_URL}/dashboard`, {
         headers: {
           "Authorization": "Bearer " + localStorage.getItem("token"),
           "Accept": "application/json"

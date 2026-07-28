@@ -16,6 +16,7 @@ import CerrarSesion from "../CerrarSesion";
 
 export default function ConfiguracionAdmi() {
   const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const [adminData, setAdminData] = useState({
     name: "",
@@ -47,7 +48,7 @@ export default function ConfiguracionAdmi() {
       return;
     }
 
-    fetch("http://127.0.0.1:8000/api/admin", {
+    fetch(`${API_URL}/admin`, {
       headers: {
         "Authorization": "Bearer " + token,
         "Accept": "application/json"
@@ -99,7 +100,7 @@ export default function ConfiguracionAdmi() {
   const toggleEdit = async (campo) => {
     if (editMode[campo]) {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/admin", {
+        const res = await fetch(`${API_URL}/admin`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
