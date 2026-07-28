@@ -9,7 +9,7 @@ import axios from "axios";
 export default function DashboardNegocio() {
   const [mesSeleccionado, setMesSeleccionado] = useState("Todos");
   const [activeIndex, setActiveIndex] = useState(null);
-
+  const API_URL = import.meta.env.VITE_API_URL;
   // ESTADOS DEL BACKEND
   const [productos, setProductos] = useState([]);
   const [ingresos, setIngresos] = useState([]);
@@ -33,15 +33,15 @@ export default function DashboardNegocio() {
       } 
     };
 
-    axios.get("http://127.0.0.1:8000/api/tienda/dashboard/productos", config)
+    axios.get(`${API_URL}/tienda/dashboard/productos`, config)
       .then(res => setProductos(Array.isArray(res.data) ? res.data : []))
       .catch(err => console.error("Error productos:", err));
 
-    axios.get("http://127.0.0.1:8000/api/tienda/dashboard/ingresos", config)
+    axios.get(`${API_URL}/tienda/dashboard/ingresos`, config)
       .then(res => setIngresos(Array.isArray(res.data) ? res.data : []))
       .catch(err => console.error("Error ingresos:", err));
 
-    axios.get("http://127.0.0.1:8000/api/tienda/dashboard/resumen", config)
+    axios.get(`${API_URL}/tienda/dashboard/resumen`, config)
       .then(res => setResumen(res.data))
       .catch(err => console.error("Error resumen:", err));
   }, []);

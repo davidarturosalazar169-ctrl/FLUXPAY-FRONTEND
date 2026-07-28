@@ -10,6 +10,7 @@ function FormularioStripe() {
 
     const stripe = useStripe();
     const elements = useElements();
+    const API_URL = import.meta.env.VITE_API_URL;
 
 
     const pagar = async (e) => {
@@ -29,7 +30,7 @@ function FormularioStripe() {
             confirmParams: {
                 return_url:
                     
-                "http://localhost:5173/pago-exitoso"
+                "https://fluxpay-frontend-dun.vercel.app/pago-exitoso"
             }
 
         });

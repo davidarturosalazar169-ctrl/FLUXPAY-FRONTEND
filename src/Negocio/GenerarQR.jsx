@@ -12,7 +12,7 @@ const GenerarQR = () => {
   const [negocio, setNegocio] = useState('CAFÉ CENTRAL');
   const [imagenNegocio, setImagenNegocio] = useState("https://cdn-icons-png.flaticon.com/512/10523/10523071.png");
   const [usarDegradado, setUsarDegradado] = useState(false);
-  
+   const API_URL = import.meta.env.VITE_API_URL;
   const qrRef = useRef(null);
 
   const presets = [

@@ -13,6 +13,7 @@ const Reportes = () => {
   const [categoria, setCategoria] = useState("Pago QR");
   const [prioridad, setPrioridad] = useState("Baja");
   const API_BASE = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => { fetchTickets(); }, []);
 
@@ -51,7 +52,7 @@ const Reportes = () => {
     };
 
     try {
-    const response = await fetch('http://localhost:8000/api/tickets', {
+    const response = await fetch('${API_URL}/tickets', {
   method: 'POST',
   headers: { 
     'Content-Type': 'application/json',

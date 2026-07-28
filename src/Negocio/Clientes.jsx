@@ -14,6 +14,8 @@ export default function Clientes() {
   const [paginaActual, setPaginaActual] = useState(1);
   const registrosPorPagina = 7;
   const API_BASE = import.meta.env.VITE_API_URL;
+ const API_URL = import.meta.env.VITE_API_URL;
+
 
   // const API_URL = "http://localhost:8000/api/clientes";
   const API_URL = `${API_BASE}/clientes`;

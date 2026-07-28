@@ -41,7 +41,7 @@ function FormularioStripe(){
             confirmParams:{
 
                 return_url:
-                "https://fluxpay-frontend-dun.vercel.app/pago-exitoso"
+                "https://fluxpay-frontend-dun.app/pago-exitoso"
 
             }
 

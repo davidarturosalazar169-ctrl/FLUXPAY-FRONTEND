@@ -14,6 +14,7 @@ function PagoTerminado(){
         "payment_intent"
     );
 
+    const API_URL = import.meta.env.VITE_API_URL;
 
 
     useEffect(()=>{
@@ -27,7 +28,7 @@ function PagoTerminado(){
 
                 const respuesta = await axios.post(
 
-                    "http://127.0.0.1:8000/api/confirmar-pago-stripe",
+                    `${API_URL}/confirmar-pago-stripe`,
 
                     {
                         payment_intent: paymentIntent

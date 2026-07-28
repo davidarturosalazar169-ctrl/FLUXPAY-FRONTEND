@@ -11,6 +11,8 @@ const FluxPaySystem = () => {
   const [barcodeInput, setBarcodeInput] = useState("");
   const [efectivoRecibido, setEfectivoRecibido] = useState("");
   const [ventaFinalizada, setVentaFinalizada] = useState(null);
+  const API_URL = import.meta.env.VITE_API_URL;
+
 
   // NUEVOS ESTADOS PARA INTEGRACIÓN CON STRIPE
   const [linkDePagoCliente, setLinkDePagoCliente] = useState("");
@@ -71,7 +73,7 @@ const FluxPaySystem = () => {
 
 
       const urlPago =
-        `http://localhost:5173/qr-pagar-pedido?pedido=${pedidoTemporal}`;
+        `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=${pedidoTemporal}`;
 
 
       console.log("URL DEL QR:", urlPago);
