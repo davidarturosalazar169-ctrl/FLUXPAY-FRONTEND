@@ -38,9 +38,9 @@ import StripeProvider from "./stripe/StripeProvider";
 import Checkout from "./stripe/Checkout";
 import Renderprueba from "./Renderprueba";
 
-import PruebaQR from "./QR/PruebaQR";
-import QrPagarPedido from "./QR/QrPagarPedido";
-import PagoExitoso from "./QR/PagoExitoso";
+import PruebaQR from "./QR/PruebaQR2";
+import QrPagarPedido from "./QR/QrPagarPedido2";
+import PagoExitoso from "./QR/PagoExitoso1";
 function App() {
   return (
     <Routes>
@@ -193,20 +193,7 @@ function App() {
 />
       {/* ================= QR STRIPE ================= */}
 
-      <Route
-        path="/qr"
-        element={<PruebaQR />}
-      />
 
-      <Route
-        path="/qr-pagar-pedido"
-        element={<QrPagarPedido />}
-      />
-
-      <Route
-        path="/pago-exitoso"
-        element={<PagoExitoso />}
-      />
     </Routes>
         
   );

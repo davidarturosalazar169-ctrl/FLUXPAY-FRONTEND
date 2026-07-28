@@ -119,4 +119,4 @@ function PagoExitoso(){
 }
 
 
-export default PagoExitoso;
+export default PagoExitoso1;

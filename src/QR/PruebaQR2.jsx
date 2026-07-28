@@ -464,4 +464,4 @@ const generarQR = async () => {
 }
 
 
-export default PruebaQR;
+export default PruebaQR2;

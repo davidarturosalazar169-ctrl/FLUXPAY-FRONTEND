@@ -377,4 +377,4 @@ const datosPago = {
 }
 
 
-export default PagarPedido;
+export default PagarPedido2;

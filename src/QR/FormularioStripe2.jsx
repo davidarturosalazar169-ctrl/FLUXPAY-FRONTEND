@@ -102,4 +102,4 @@ function FormularioStripe(){
 
 
 
-export default FormularioStripe;
+export default FormularioStripe2;
