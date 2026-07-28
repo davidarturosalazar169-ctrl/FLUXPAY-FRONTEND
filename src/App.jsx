@@ -40,9 +40,6 @@ import StripeProvider from "./stripe/StripeProvider";
 import Checkout from "./stripe/Checkout";
 import Renderprueba from "./Renderprueba";
 
-import PruebaQR from "./QR/PruebaQR2";
-import QrPagarPedido from "./QR/QrPagarPedido2";
-import PagoExitoso from "./QR/PagoExitoso1";
 function App() {
   return (
     <Routes>
