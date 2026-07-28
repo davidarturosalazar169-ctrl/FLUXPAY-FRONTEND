@@ -23,13 +23,15 @@ import ConfiguracionAdmi from "./Administrador/ConfiguracionAdmi";
 import DashboardNegocio from "./Negocio/Dashboard";
 import ProductosNegocio from "./Negocio/Productos";
 import LayoutNegocio from "./Negocio/LayoutNegocio";
-import HistorialNegocio from './Negocio/Historial'; 
+import HistorialNegocio from './Negocio/Historial';
 import ReportesNegocio from "./Negocio/Reportes";
 import CobrarNegocio from "./Negocio/Cobrar";
 import GenerarQR from "./Negocio/GenerarQR";
 import Cuenta from "./Negocio/Cuenta";
 import ConfiguracionNegocio from "./Negocio/Configuracion";
 import Clientes from './Negocio/Clientes';
+import PagarPedido from "./Negocio/PagarPedido";
+import PagoTerminado from "./Negocio/PagoTerminado";
 
 /* ================= Stripe ================= */
 
@@ -45,109 +47,109 @@ function App() {
       <Route path="/register" element={<Register />} />
 
       {/* ================= CLIENTE ================= */}
-      <Route 
-        path="/dashboard" 
+      <Route
+        path="/dashboard"
         element={
           <ProtectedRoute rolPermitido={9}>
             <Dashboard />
           </ProtectedRoute>
-        } 
+        }
       />
 
-      <Route 
-        path="/Cliente/clienteTarjetas" 
+      <Route
+        path="/Cliente/clienteTarjetas"
         element={
           <ProtectedRoute rolPermitido={9}>
             <ClienteTarjeta />
           </ProtectedRoute>
-        } 
+        }
       />
 
-      <Route 
-        path="/Cliente/HistorialCliente" 
+      <Route
+        path="/Cliente/HistorialCliente"
         element={
           <ProtectedRoute rolPermitido={9}>
             <HistorialCliente />
           </ProtectedRoute>
-        } 
+        }
       />
 
-      <Route 
-        path="/Cliente/ClienteConfiguracion" 
+      <Route
+        path="/Cliente/ClienteConfiguracion"
         element={
           <ProtectedRoute rolPermitido={9}>
             <ClienteConfiguracion />
           </ProtectedRoute>
-        } 
+        }
       />
 
       {/* ================= ADMIN ================= */}
-      <Route 
-        path="/admin/dashboard" 
+      <Route
+        path="/admin/dashboard"
         element={
           <ProtectedRoute rolPermitido={1}>
             <DashboardAdmin />
           </ProtectedRoute>
-        } 
+        }
       />
 
-      <Route 
-        path="/admin/negocios" 
+      <Route
+        path="/admin/negocios"
         element={
           <ProtectedRoute rolPermitido={1}>
             <GestionNegocios />
           </ProtectedRoute>
-        } 
+        }
       />
 
-      <Route 
-        path="/admin/agregar" 
+      <Route
+        path="/admin/agregar"
         element={
           <ProtectedRoute rolPermitido={1}>
             <AgregarNegocio />
           </ProtectedRoute>
-        } 
+        }
       />
 
-      <Route 
-        path="/admin/negocio/:id" 
+      <Route
+        path="/admin/negocio/:id"
         element={
           <ProtectedRoute rolPermitido={1}>
             <DetalleNegocio />
           </ProtectedRoute>
-        } 
+        }
       />
 
-      <Route 
-        path="/admin/reportes" 
+      <Route
+        path="/admin/reportes"
         element={
           <ProtectedRoute rolPermitido={1}>
             <ReportesGlobales />
           </ProtectedRoute>
-        } 
+        }
       />
 
-      <Route 
-        path="/admin/soporte" 
+      <Route
+        path="/admin/soporte"
         element={
           <ProtectedRoute rolPermitido={1}>
             <Soporte />
           </ProtectedRoute>
-        } 
+        }
       />
 
-      <Route 
-        path="/admin/configuracion" 
+      <Route
+        path="/admin/configuracion"
         element={
           <ProtectedRoute rolPermitido={1}>
             <ConfiguracionAdmi />
           </ProtectedRoute>
-        } 
+        }
       />
 
       {/* ================= NEGOCIO ================= */}
-      <Route 
-        path="/negocio" 
+      <Route
+        path="/negocio"
         element={
           <ProtectedRoute rolPermitido={8}>
             <LayoutNegocio />
@@ -164,22 +166,28 @@ function App() {
         <Route path="Cuenta" element={<Cuenta />} />
         <Route path="Configuracion" element={<ConfiguracionNegocio />} />
         <Route path="Clientes" element={<Clientes />} />
+
       </Route>
+      
+       <Route path="/qr-pagar-pedido" element={<PagarPedido />}/>
+       <Route path="/qr-pagar-pedido" element={<PagarPedido />}/>
+       <Route path="/pago-exitoso" element={<PagoTerminado />}/>
+    
       {/* ================= Stripe ================= */}
       <Route
-  path="/stripe-test"
-  element={
-    <StripeProvider>
-      <div style={{ maxWidth: "400px", margin: "50px auto" }}>
-        <h2>Prueba Stripe</h2>
-        <Checkout />
-      </div>
-    </StripeProvider>
-  }
-/>
-
+        path="/stripe-test"
+        element={
+          <StripeProvider>
+            <div style={{ maxWidth: "400px", margin: "50px auto" }}>
+              <h2>Prueba Stripe</h2>
+              <Checkout />
+            </div>
+          </StripeProvider>
+        }
+      />
+ 
     </Routes>
-        
+
   );
 }
 
