@@ -64,7 +64,7 @@ const handleSeleccionarMetodoQR = async () => {
 
         const pedidoId = respuesta.data.pedido_id;
 
-        const urlPago = `${FRONT_URL}/qr-pagar-pedido?pedido=${pedidoId}`;
+        const urlPago = "https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=${pedidoId}";
 
         console.log("URL DEL QR:", urlPago);
 
@@ -88,7 +88,7 @@ const handleSeleccionarMetodoQR = async () => {
             JSON.stringify(pedido)
         );
 
-        const urlPago = `${FRONT_URL}/qr-pagar-pedido?pedido=${pedidoTemporal}`;
+        const urlPago = "https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=${pedidoTemporal}";
 
         console.log("URL DEL QR (LOCAL):", urlPago);
 
