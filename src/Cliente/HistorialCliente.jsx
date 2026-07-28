@@ -16,7 +16,7 @@ import ImpulsaPlayCliente from "./ImpulsaPlayCliente.jpeg";
 
 const HistorialCliente = () => {
   const [data, setData] = useState([]);
-
+  const API_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -28,7 +28,7 @@ const HistorialCliente = () => {
   useEffect(() => {
     console.log("TOKEN:", token);
 
-    Axios.get("http://localhost/api/historial", {
+    Axios.get(`${API_URL}/historial`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -42,7 +42,7 @@ const HistorialCliente = () => {
   }, [token]);
 
   useEffect(() => {
-    Axios.get("http://127.0.0.1:8000/api/cliente/configuracion", {
+    Axios.get(`${API_URL}/cliente/configuracion`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

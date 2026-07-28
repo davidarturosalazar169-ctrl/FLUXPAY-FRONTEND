@@ -29,7 +29,7 @@ const [user, setUser] = useState({
 });
 
 useEffect(() => {
-  Axios.get("http://localhost/api/cliente/configuracion", {
+  Axios.get("https://fluxpay-2-cpye.onrender.com/api/cliente/configuracion", {
     headers: {
       Authorization: `Bearer ${token}`
     }

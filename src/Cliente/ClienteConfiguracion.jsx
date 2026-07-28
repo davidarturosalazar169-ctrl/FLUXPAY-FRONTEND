@@ -19,9 +19,8 @@ import FotoPerfil from "./FotoPerfil.png";
 
 function ClienteConfiguracion() {
   const token = localStorage.getItem("token");
-
+  const API_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
-
   const [user, setUser] = useState({
     nombre: "José Aguilar",
     correo: "joseagui@gmail.com",
@@ -30,7 +29,7 @@ function ClienteConfiguracion() {
     foto: FotoPerfil
   });
   useEffect(() => {
-  Axios.get("http://localhost/api/cliente/configuracion", {
+  Axios.get(`${API_URL}/cliente/configuracion`, {
   headers: {
     Authorization: `Bearer ${token}`
   }
@@ -234,7 +233,7 @@ function ClienteConfiguracion() {
           label="Nuevo nombre"
           value={user.nombre}
   onSave={(value) => {
-    Axios.put("http://localhost/api/cliente/actualizar", {
+    Axios.put(`${API_URL}/cliente/actualizar`, {
       nombre: value
     }, {
       headers: {
