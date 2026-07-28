@@ -89,6 +89,7 @@ const [producto, setProducto] = useState({
   // Aquí después conectaremos Laravel + Stripe
 const generarQR = async () => {
 
+
     if(productos.length === 0){
 
         alert("Agrega productos primero");
@@ -97,26 +98,60 @@ const generarQR = async () => {
     }
 
 
-    // Generar ID temporal del pedido
-    const pedidoTemporal = Date.now();
+    try {
 
 
-    // Guardamos los datos temporalmente
-    localStorage.setItem(
-        `pedido_${pedidoTemporal}`,
-        JSON.stringify({
-            productos,
-            total
-        })
-    );
+        const respuesta = await axios.post(
+
+            `${import.meta.env.VITE_API_URL}/crear-pedido`,
+
+            {
+
+                idnegocio: 1,
+
+                iduser: 1,
+
+                productos: productos,
+
+                total: total
+
+            }
+
+        );
 
 
-    // Link hacia pantalla de pago
-    const linkPago =
-     `${FRONT_URL}/qr-pagar-pedido?pedido=${pedidoTemporal}`;
+
+        console.log(
+            "Pedido creado:",
+            respuesta.data
+        );
 
 
-    setCheckoutUrl(linkPago);
+
+        const pedidoId = respuesta.data.pedido_id;
+
+
+
+        const linkPago =
+        `${FRONT_URL}/qr-pagar-pedido?pedido=${pedidoId}`;
+
+
+
+        setCheckoutUrl(linkPago);
+
+
+
+    } catch(error){
+
+
+        console.log(error);
+
+
+        alert("Error creando pedido");
+
+
+    }
+
 
 };
 
