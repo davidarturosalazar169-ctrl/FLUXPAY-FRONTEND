@@ -38,62 +38,68 @@ const FluxPaySystem = () => {
   const cambio = montoNumerico > 0 ? montoNumerico - total : 0;
 
   // --- SOLICITAR QR DINÁMICO DE TU PASARELA ---
-  const handleSeleccionarMetodoQR = async () => {
+const handleSeleccionarMetodoQR = async () => {
+    if (selectedProducts.length === 0) {
+        alert("Agrega productos primero");
+        return;
+    }
 
     setCargandoQr(true);
-    setMetodo('qr');
-
+    setMetodo("qr");
 
     try {
 
+        // Intentar crear el pedido en el backend
+        const respuesta = await axios.post(
+            `${import.meta.env.VITE_API_URL}/crear-pedido`,
+            {
+                idnegocio: 1, // Cambiar por el negocio real
+                iduser: 1,    // Cambiar por el usuario real
+                productos: selectedProducts,
+                total: total
+            }
+        );
 
-      const pedidoTemporal = Date.now();
+        console.log("Pedido creado:", respuesta.data);
 
+        const pedidoId = respuesta.data.pedido_id;
 
-      const pedido = {
+        const urlPago = `${FRONT_URL}/qr-pagar-pedido?pedido=${pedidoId}`;
 
-        idpedido: pedidoTemporal,
+        console.log("URL DEL QR:", urlPago);
 
-        productos: selectedProducts,
-
-        total: total
-
-      };
-
-
-
-      localStorage.setItem(
-
-        `pedido_${pedidoTemporal}`,
-
-        JSON.stringify(pedido)
-
-      );
-
-
-
-      const urlPago =
-        `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=${pedidoTemporal}`;
-
-
-      console.log("URL DEL QR:", urlPago);
-
-
-      setLinkDePagoCliente(urlPago);
-
+        setLinkDePagoCliente(urlPago);
 
     } catch (error) {
 
-      console.log(error);
+        console.error("Error creando pedido en backend:", error);
+
+        // Respaldo local
+        const pedidoTemporal = Date.now();
+
+        const pedido = {
+            idpedido: pedidoTemporal,
+            productos: selectedProducts,
+            total: total
+        };
+
+        localStorage.setItem(
+            `pedido_${pedidoTemporal}`,
+            JSON.stringify(pedido)
+        );
+
+        const urlPago = `${FRONT_URL}/qr-pagar-pedido?pedido=${pedidoTemporal}`;
+
+        console.log("URL DEL QR (LOCAL):", urlPago);
+
+        setLinkDePagoCliente(urlPago);
 
     } finally {
 
-      setCargandoQr(false);
+        setCargandoQr(false);
 
     }
-
-
-  };
+};
 
   // --- REVISAR SI EL CLIENTE YA PAGÓ DESDE EL CELULAR ---
   useEffect(() => {

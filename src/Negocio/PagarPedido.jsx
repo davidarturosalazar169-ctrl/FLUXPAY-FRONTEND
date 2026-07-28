@@ -24,36 +24,45 @@ function PagarPedido() {
     const API_URL = import.meta.env.VITE_API_URL;
 
 
-    useEffect(() => {
+useEffect(() => {
 
-        const id = params.get("pedido");
+    const id = params.get("pedido");
 
-        console.log("ID PEDIDO:", id);
+    if (!id) return;
 
-        setIdPedido(id);
+    setIdPedido(id);
 
-        if (id) {
+    obtenerPedido(id);
 
-            const datos = localStorage.getItem(
-                `pedido_${id}`
-            );
+}, []);
 
-            console.log(
-                "DATOS:",
-                datos
-            );
+const obtenerPedido = async (id) => {
 
-            if (datos) {
+    try {
 
-                setPedido(
-                    JSON.parse(datos)
-                );
+        const res = await axios.get(`${API_URL}/pedido/${id}`);
 
-            }
+        console.log(res.data);
 
-        }
+        setPedido({
+            total: res.data.pedido.total,
+            productos: res.data.productos.map(p => ({
+                id: p.idproducto,
+                nombre: p.producto_nombre,
+                cant: p.cantidad,
+                precio: p.precio
+            }))
+        });
 
-    }, []);
+    } catch (error) {
+
+        console.log(error);
+
+        alert("Pedido no encontrado");
+
+    }
+
+};
 
     const pagar = async () => {
 
