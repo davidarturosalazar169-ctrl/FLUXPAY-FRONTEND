@@ -21,10 +21,10 @@ const FluxPaySystem = () => {
   const [idPedido, setIdPedido] = useState(null);
 
   const productos = [
-    { id: 1, nombre: "Café Sobre 50g", precio: 15.00, code: "750101" },
-    { id: 2, nombre: "Galletas Gamesa", precio: 25.50, code: "750102" },
-    { id: 3, nombre: "Refresco Sprite", precio: 22.00, code: "750103" },
-    { id: 4, nombre: "Yakult", precio: 10.50, code: "750104" },
+    { id: 1, nombre: "Silla gamer ergonomica Ultra", precio: 3017.00, code: "750101" },
+    { id: 2, nombre: "MacBook Air M1 Ultra", precio: 1276.00, code: "750102" },
+    { id: 3, nombre: "Cafetera Oster Pro", precio: 3458.00, code: "750103" },
+    { id: 4, nombre: "Maleta de viaje Max", precio: 1629.00, code: "750104" },
   ];
 
   const subtotal = selectedProducts.reduce((acc, p) => acc + (p.precio * p.cant), 0);
