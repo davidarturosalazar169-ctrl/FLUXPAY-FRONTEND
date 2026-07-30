@@ -9,9 +9,16 @@ import FormularioStripe from "./FormularioStripe";
 
 function PagarPedido() {
 
-    const stripePromise = loadStripe(
-        "pk_test_51TeVLCCE5hGDEGBLsDzQjc7DJsqcxbvNp4qP6fLZiPuYZxAVP1jk7nd9Ct3honQhf1ioA29PKWxV8cJvR1XzmEF2006OfrFvJW"
-    );
+const stripePromise = loadStripe(
+  "pk_test_51TeVLCCE5hGDEGBLsDzQjc7DJsqcxbvNp4qP6fLZiPuYZxAVP1jk7nd9Ct3honQhf1ioA29PKWxV8cJvR1XzmEF2006OfrFvJW",
+  {
+    developerTools: {
+      assistant: {
+        enabled: false,
+      },
+    },
+  }
+);
 
     const [params] = useSearchParams();
 
