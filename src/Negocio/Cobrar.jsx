@@ -20,12 +20,15 @@ const FluxPaySystem = () => {
   const [idTicketCreado, setIdTicketCreado] = useState(null);
   const [idPedido, setIdPedido] = useState(null);
 
-  const productos = [
-    { id: 1, nombre: "Silla gamer ergonomica Ultra", precio: 3017.00, code: "750101" },
-    { id: 2, nombre: "MacBook Air M1 Ultra", precio: 1276.00, code: "750102" },
-    { id: 3, nombre: "Cafetera Oster Pro", precio: 3458.00, code: "750103" },
-    { id: 4, nombre: "Maleta de viaje Max", precio: 1629.00, code: "750104" },
-  ];
+const productos = [
+  { id: 1, nombre: "Silla gamer ergonomica Ultra", precio: 3017.00, code: "750101" },
+  { id: 2, nombre: "Agenda 2026 Pro", precio: 2033.00, code: "750102" },
+  { id: 3, nombre: "MacBook Air M1 Ultra", precio: 1276.00, code: "750103" },
+  { id: 4, nombre: "Cafetera Oster Pro", precio: 3458.00, code: "750104" },
+  { id: 5, nombre: "Maleta de viaje Max", precio: 1629.00, code: "750105" },
+  { id: 6, nombre: "Mouse Logitech Max", precio: 4146.00, code: "750106" },
+  { id: 7, nombre: "Audifonos Sony Bluetooth 2024", precio: 1074.00, code: "750107" },
+];
 
   const subtotal = selectedProducts.reduce((acc, p) => acc + (p.precio * p.cant), 0);
   const gananciaFlux = subtotal > 0 ? (subtotal * 0.02) : 0;
