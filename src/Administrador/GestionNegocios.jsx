@@ -21,10 +21,13 @@ export default function GestionNegocios() {
   // Estados
   const [negociosData, setNegociosData] = useState([]);
   const [busqueda, setBusqueda] = useState("");
+  const [estadoFiltro, setEstadoFiltro] = useState("todos");
+  const [fechaDesde, setFechaDesde] = useState("");
+  const [fechaHasta, setFechaHasta] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [editando, setEditando] = useState(false);
-  const [form, setForm] = useState({ id: null, nombre: "", descripcion: "", telefono: "" });
+  const [form, setForm] = useState({ id: null, nombre: "", descripcion: "", telefono: "", status: 1 });
   const [data, setData] = useState(null); // Almacena info del usuario conectado
 
   const negociosPorPagina = 5;
@@ -45,7 +48,9 @@ export default function GestionNegocios() {
         nombre: n.nombre,
         descripcion: n.descripcion || "Sin información",
         telefono: n.telefono || "N/A",
+        status: Number(n.status),
         estado: n.status === 1 ? "activo" : n.status === 0 ? "inactivo" : "verificar",
+        fechaCreacion: n.created_at || "",
         ventas: 0,
         ingresos: "$0",
       }));
@@ -78,7 +83,7 @@ export default function GestionNegocios() {
           nombre: form.nombre,
           descripcion: form.descripcion,
           telefono: form.telefono,
-          status: 1
+          status: Number(form.status)
         }),
       });
 
@@ -128,7 +133,7 @@ export default function GestionNegocios() {
   // Modales
   const abrirCrear = () => {
     setEditando(false);
-    setForm({ id: null, nombre: "", descripcion: "", telefono: "" });
+    setForm({ id: null, nombre: "", descripcion: "", telefono: "", status: 1 });
     setMostrarModal(true);
   };
 
@@ -141,11 +146,23 @@ export default function GestionNegocios() {
   const cerrarModal = () => setMostrarModal(false);
 
   // Filtrar y paginar
-  const negociosFiltrados = negociosData.filter(
-    (n) =>
-      n.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      n.descripcion.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const negociosFiltrados = negociosData.filter((n) => {
+    const coincideNombre = n.nombre.toLowerCase().includes(busqueda.toLowerCase());
+    const coincideEstado = estadoFiltro === "todos" || n.estado === estadoFiltro;
+    const fechaNegocio = n.fechaCreacion ? n.fechaCreacion.slice(0, 10) : "";
+    const coincideDesde = !fechaDesde || (fechaNegocio && fechaNegocio >= fechaDesde);
+    const coincideHasta = !fechaHasta || (fechaNegocio && fechaNegocio <= fechaHasta);
+
+    return coincideNombre && coincideEstado && coincideDesde && coincideHasta;
+  });
+
+  const limpiarFiltros = () => {
+    setBusqueda("");
+    setEstadoFiltro("todos");
+    setFechaDesde("");
+    setFechaHasta("");
+    setPaginaActual(1);
+  };
 
   const indiceUltimo = paginaActual * negociosPorPagina;
   const indicePrimero = indiceUltimo - negociosPorPagina;
@@ -215,17 +232,74 @@ export default function GestionNegocios() {
         {/* TU CONTENIDO ORIGINAL RESPETADO AL 100% */}
         <main className="admin-dashboard">
 
-          <div className="search-container">
-        <input
-            type="text"
-            placeholder="Buscar negocio..."
-            value={busqueda}
-            onChange={(e)=>{
-                setBusqueda(e.target.value);
-                setPaginaActual(1);
-            }}
-        />
-    </div>
+          <div className="filters-container">
+            <div className="filter-field filter-search-field">
+              <label htmlFor="buscar-negocio">Nombre del negocio</label>
+              <input
+                id="buscar-negocio"
+                type="search"
+                placeholder="Buscar negocio..."
+                value={busqueda}
+                onChange={(e) => {
+                  setBusqueda(e.target.value);
+                  setPaginaActual(1);
+                }}
+              />
+            </div>
+
+            <div className="filter-field">
+              <label htmlFor="filtro-estado">Estado</label>
+              <select
+                id="filtro-estado"
+                value={estadoFiltro}
+                onChange={(e) => {
+                  setEstadoFiltro(e.target.value);
+                  setPaginaActual(1);
+                }}
+              >
+                <option value="todos">Todos</option>
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+                <option value="verificar">Por verificar</option>
+              </select>
+            </div>
+
+            <div className="filter-field">
+              <label htmlFor="fecha-desde">Desde</label>
+              <input
+                id="fecha-desde"
+                type="date"
+                value={fechaDesde}
+                max={fechaHasta || undefined}
+                onChange={(e) => {
+                  setFechaDesde(e.target.value);
+                  setPaginaActual(1);
+                }}
+              />
+            </div>
+
+            <div className="filter-field">
+              <label htmlFor="fecha-hasta">Hasta</label>
+              <input
+                id="fecha-hasta"
+                type="date"
+                value={fechaHasta}
+                min={fechaDesde || undefined}
+                onChange={(e) => {
+                  setFechaHasta(e.target.value);
+                  setPaginaActual(1);
+                }}
+              />
+            </div>
+
+            <button type="button" className="clear-filters-btn" onClick={limpiarFiltros}>
+              Limpiar filtros
+            </button>
+          </div>
+
+          <div className="results-summary">
+            {negociosFiltrados.length} de {negociosData.length} negocios
+          </div>
           
        <div className="action-row-container">
     <button className="btn-primary" onClick={abrirCrear}>
@@ -307,6 +381,18 @@ export default function GestionNegocios() {
             <div className="form-group">
               <label>Teléfono</label>
               <input value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} placeholder="123 456 7890" />
+            </div>
+            <div className="form-group">
+              <label htmlFor="estado-negocio">Estado del negocio</label>
+              <select
+                id="estado-negocio"
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: Number(e.target.value) })}
+              >
+                <option value={1}>Activo</option>
+                <option value={0}>Inactivo</option>
+                <option value={2}>Por verificar</option>
+              </select>
             </div>
             <div className="modal-actions">
               <button className="btn-primary" onClick={guardarNegocio}>Guardar Cambios</button>

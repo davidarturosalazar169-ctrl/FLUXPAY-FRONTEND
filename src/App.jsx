@@ -18,7 +18,7 @@ import DetalleNegocio from "./Administrador/DetalleNegocio";
 import ReportesGlobales from "./Administrador/ReportesGlobales";
 import Soporte from "./Administrador/Soporte";
 import ConfiguracionAdmi from "./Administrador/ConfiguracionAdmi";
-import RolesPermisos from "./Administrador/RolesPermisos";
+import RolesPermisos from "./Administrador/Rolespermisos";
 import InventarioAdmin from "./Administrador/InventarioAdmin";
 /* ================= NEGOCIO ================= */
 import DashboardNegocio from "./Negocio/Dashboard";

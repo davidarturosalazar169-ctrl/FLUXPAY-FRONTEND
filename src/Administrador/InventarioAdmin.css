@@ -200,3 +200,47 @@ transition:.3s;
 background:#1b4d94;
 
 }
+
+.inventario-modal{
+
+    max-width:520px;
+
+}
+
+.modal-description{
+
+    margin:-8px 0 22px;
+    color:#64748b;
+    font-size:14px;
+
+}
+
+.inventario-modal .form-group input{
+
+    box-sizing:border-box;
+    background:#f8fafc;
+
+}
+
+.inventario-modal .form-group input:focus{
+
+    border-color:#002855;
+    box-shadow:0 0 0 3px rgba(0,40,85,.08);
+
+}
+
+@media (max-width:700px){
+
+    .cards{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .tabla-inventario{
+        min-width:850px;
+    }
+
+    .inventario-container{
+        overflow-x:auto;
+    }
+
+}

@@ -16,6 +16,7 @@
   padding:25px;
   border:1px solid #e8edf5;
   box-shadow:0 10px 35px rgba(0,0,0,.05);
+  overflow-x:auto;
 }
 
 /* ==========================================================
@@ -51,30 +52,76 @@
 }
 
 /* ==========================================================
-   BUSCADOR
+   FILTROS
 ========================================================== */
 
-.search-container{
-  margin-bottom:25px;
+.filters-container{
+  display:grid;
+  grid-template-columns:minmax(220px, 1.5fr) repeat(3, minmax(145px, 1fr)) auto;
+  gap:14px;
+  align-items:end;
+  margin-bottom:12px;
+  padding:18px;
+  border:1px solid #e8edf5;
+  border-radius:18px;
+  background:#fff;
 }
 
-.search-container input{
+.filter-field{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+
+.filter-field label{
+  color:#62748a;
+  font-size:12px;
+  font-weight:700;
+}
+
+.filter-field input,
+.filter-field select{
   width:100%;
-  max-width:420px;
-  height:50px;
-  border:none;
-  border-radius:14px;
-  background:#f5f8fc;
-  padding:0 18px;
-  font-size:15px;
+  height:44px;
+  border:1px solid #dbe5f0;
+  border-radius:12px;
+  background:#f8fafc;
+  padding:0 12px;
+  color:#1e293b;
+  font-size:14px;
   outline:none;
   transition:.25s;
-  border:2px solid transparent;
 }
 
-.search-container input:focus{
+.filter-field input:focus,
+.filter-field select:focus{
   border-color:#002855;
   background:white;
+  box-shadow:0 0 0 3px rgba(0,40,85,.08);
+}
+
+.clear-filters-btn{
+  height:44px;
+  border:1px solid #dbe5f0;
+  border-radius:12px;
+  background:white;
+  color:#002855;
+  padding:0 15px;
+  font-weight:700;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:.2s;
+}
+
+.clear-filters-btn:hover{
+  border-color:#002855;
+  background:#edf4ff;
+}
+
+.results-summary{
+  margin:0 0 14px 4px;
+  color:#62748a;
+  font-size:13px;
 }
 
 /* ==========================================================
@@ -83,6 +130,7 @@
 
 .custom-table{
   width:100%;
+  min-width:900px;
   border-collapse:collapse;
 }
 
@@ -264,7 +312,22 @@
   outline:none;
 }
 
+.form-group select{
+  width:100%;
+  height:50px;
+  border:1px solid #dbe5f0;
+  border-radius:12px;
+  padding:0 15px;
+  background:white;
+  color:#1e293b;
+  outline:none;
+}
+
 .form-group input:focus{
+  border-color:#002855;
+}
+
+.form-group select:focus{
   border-color:#002855;
 }
 
@@ -273,4 +336,28 @@
   justify-content:flex-end;
   gap:12px;
   margin-top:25px;
+}
+
+@media (max-width: 1100px){
+  .filters-container{
+    grid-template-columns:repeat(2, minmax(180px, 1fr));
+  }
+
+  .filter-search-field{
+    grid-column:span 2;
+  }
+}
+
+@media (max-width: 600px){
+  .filters-container{
+    grid-template-columns:1fr;
+  }
+
+  .filter-search-field{
+    grid-column:auto;
+  }
+
+  .clear-filters-btn{
+    width:100%;
+  }
 }
