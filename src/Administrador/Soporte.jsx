@@ -16,6 +16,8 @@ import CerrarSesion from "../CerrarSesion";
 
 export default function Soporte() {
   const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const [filtro, setFiltro] = useState("Todos");
   const [busqueda, setBusqueda] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
@@ -24,7 +26,7 @@ export default function Soporte() {
   const [data, setData] = useState(null); // Estado unificado para la información del usuario conectado
 
   const cargarTickets = () => {
-    fetch("http://127.0.0.1:8000/api/tickets", {
+    fetch(`${API_URL}/tickets`, {
       headers: {
         "Accept": "application/json",
         "Authorization": "Bearer " + localStorage.getItem("token")
@@ -52,7 +54,7 @@ export default function Soporte() {
 
   const cambiarEstado = async (id, nuevoEstado) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/tickets/${id}`, {
+      const res = await fetch(`${API_URL}/tickets/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -70,7 +72,7 @@ export default function Soporte() {
 
   const cambiarPrioridad = async (id, nuevaPrioridad) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/tickets/${id}`, {
+      const res = await fetch(`${API_URL}/tickets/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

@@ -1,5 +1,4 @@
 import React from "react";
-
 import {
     PaymentElement,
     useStripe,
@@ -7,53 +6,39 @@ import {
 } from "@stripe/react-stripe-js";
 
 
-
-function FormularioStripe(){
-
+function FormularioStripe() {
 
     const stripe = useStripe();
-
     const elements = useElements();
+    const API_URL = import.meta.env.VITE_API_URL;
 
 
-
-
-    const pagar = async (e)=>{
+    const pagar = async (e) => {
 
         e.preventDefault();
 
 
-
-        if(!stripe || !elements){
-
+        if (!stripe || !elements) {
             return;
-
         }
-
-
 
 
         const resultado = await stripe.confirmPayment({
 
             elements,
 
-
-            confirmParams:{
-
+            confirmParams: {
                 return_url:
-                "http://localhost:5173/pago-exitoso"
-
+                    
+                "https://fluxpay-frontend-dun.vercel.app/pago-exitoso"
             }
 
         });
 
 
+        if (resultado.error) {
 
-        if(resultado.error){
-
-            console.log(
-                resultado.error.message
-            );
+            console.log(resultado.error.message);
 
         }
 
@@ -62,44 +47,26 @@ function FormularioStripe(){
 
 
 
-
     return (
 
         <form onSubmit={pagar}>
 
-
-            <h3>
-                Datos de tarjeta
-            </h3>
-
-
-
             <PaymentElement />
 
 
-
             <button
-
                 type="submit"
-
-                className="btn btn-success mt-3"
-
+                className="btn btn-success"
             >
-
-                Pagar
-
-
+                Completar pago 
             </button>
-
 
 
         </form>
 
     );
 
-
 }
-
 
 
 export default FormularioStripe;

@@ -1,28 +1,26 @@
 import React, { useState, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
-  FaTerminal, FaShieldAlt, FaImage, FaQuoteLeft, 
-  FaPalette, FaRocket, FaDownload, FaWhatsapp, FaMagic 
+  FaUpload, FaWhatsapp, FaSlidersH, FaLink, FaFont, FaShapes, FaCheckCircle, FaQrcode, FaShieldAlt, FaWifi 
 } from 'react-icons/fa';
 
 const GenerarQR = () => {
-  const [colorPrimario, setColorPrimario] = useState('#0e2a5a');
-  const [colorSecundario, setColorSecundario] = useState('#ef4444');
-  const [mensaje, setMensaje] = useState('TU ESLOGAN AQUÍ');
-  const [negocio, setNegocio] = useState('CAFÉ CENTRAL');
-  const [imagenNegocio, setImagenNegocio] = useState("https://cdn-icons-png.flaticon.com/512/10523/10523071.png");
-  const [usarDegradado, setUsarDegradado] = useState(false);
+  const [colorPrimario, setColorPrimario] = useState('#4f46e5');
+  const [colorSecundario, setColorSecundario] = useState('#ec4899');
+  const [tamanoQR, setTamanoQR] = useState(250);
+  const [bordeadoQR, setBordeadoQR] = useState(24);
+  const [tamanoLogo, setTamanoLogo] = useState(60);
   
-  const qrRef = useRef(null);
+  const [tipoFuente, setTipoFuente] = useState("'Plus Jakarta Sans', sans-serif");
+  const [formaImagen, setFormaImagen] = useState("50%");
 
-  const presets = [
-    { p: '#0e2a5a', s: '#ef4444' },
-    { p: '#1a1a1a', s: '#facc15' },
-    { p: '#064e3b', s: '#10b981' },
-    { p: '#4c1d95', s: '#a855f7' },
-    { p: '#b91c1c', s: '#f87171' },
-    { p: '#0f172a', s: '#38bdf8' },
-  ];
+  const [mensaje, setMensaje] = useState('¡10% DE DESCUENTO HOY!');
+  const [negocio, setNegocio] = useState('MODA & ESTILO');
+  
+  const [enlaceCompleto, setEnlaceCompleto] = useState('https://tienda.ejemplo.com/caja-principal');
+
+  const [imagenNegocio, setImagenNegocio] = useState("https://cdn-icons-png.flaticon.com/512/869/869636.png");
+  const qrRef = useRef(null);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -42,26 +40,32 @@ const GenerarQR = () => {
       const img = new Image();
       
       canvas.width = 1000;
-      canvas.height = 1250; 
+      canvas.height = 1500; 
 
       img.onload = () => {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         ctx.fillStyle = colorPrimario;
-        ctx.font = "bold 50px 'JetBrains Mono'";
+        ctx.font = "bold 56px 'JetBrains Mono'";
         ctx.textAlign = "center";
-        ctx.fillText(negocio.toUpperCase(), 500, 150);
+        ctx.fillText(negocio.toUpperCase(), 500, 160);
 
-        ctx.drawImage(img, 150, 250, 700, 700);
+        const qrSizeCanvas = 740;
+        const qrPosCanvas = (1000 - qrSizeCanvas) / 2;
+        ctx.drawImage(img, qrPosCanvas, 240, qrSizeCanvas, qrSizeCanvas);
 
-        ctx.fillStyle = usarDegradado ? colorPrimario : colorSecundario;
-        ctx.font = "bold 45px 'Plus Jakarta Sans'";
-        ctx.fillText(mensaje, 500, 1050);
+        ctx.fillStyle = colorSecundario;
+        ctx.font = `bold 48px ${tipoFuente}`;
+        ctx.fillText(mensaje, 500, 1150);
 
-        ctx.fillStyle = "#94a3b8";
-        ctx.font = "bold 25px 'Plus Jakarta Sans'";
-        ctx.fillText("MÉRIDA • 2026 | SECURE ASSET", 500, 1180);
+        ctx.fillStyle = "#64748b";
+        ctx.font = `400 30px ${tipoFuente}`;
+        ctx.fillText("Escanea para pagar con cualquier app bancaria", 500, 1210);
+
+        ctx.fillStyle = colorPrimario;
+        ctx.font = `bold 26px ${tipoFuente}`;
+        ctx.fillText("PAGO SEGURO  |  DEMOSTRACIÓN • 2026", 500, 1370);
 
         resolve(canvas);
       };
@@ -69,29 +73,27 @@ const GenerarQR = () => {
     });
   };
 
-  const descargarQR = async () => {
-    const canvas = await generarCanvas();
-    const pngFile = canvas.toDataURL("image/png");
-    const downloadLink = document.createElement("a");
-    downloadLink.href = pngFile;
-    downloadLink.download = `ImpulsaPay_${negocio}.png`;
-    downloadLink.click();
-  };
-
   const compartirWhatsApp = async () => {
     const canvas = await generarCanvas();
+    
+    let textoMensaje = `¡Hola! Aquí tienes tu tarjeta de cobro oficial para *${negocio}*.\n\n`;
+    textoMensaje += `🔗 *Destino:* ${enlaceCompleto}\n`;
+    textoMensaje += `📌 *Concepto:* ${mensaje}`;
+
     canvas.toBlob(async (blob) => {
       const file = new File([blob], `QR_${negocio}.png`, { type: 'image/png' });
+      
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({
             files: [file],
-            title: `QR ImpulsaPay - ${negocio}`,
-            text: `Aquí tienes el código QR de pago para ${negocio}`,
+            title: `Cobro - ${negocio}`,
+            text: textoMensaje,
           });
         } catch (error) { console.error("Error al compartir:", error); }
       } else {
-        alert("Tu navegador no permite compartir archivos directamente. Usa el botón de descargar.");
+        const urlWp = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoMensaje)}`;
+        window.open(urlWp, '_blank');
       }
     });
   };
@@ -99,130 +101,256 @@ const GenerarQR = () => {
   return (
     <div style={styles.layout}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;600;700;800&family=Poppins:wght@400;600;700;800&family=Roboto:wght@400;500;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
-        .color-swatch { height: 35px; border-radius: 8px; cursor: pointer; display: flex; overflow: hidden; border: 2px solid transparent; transition: 0.2s; }
-        .color-swatch.active { border-color: #0e2a5a; transform: scale(1.05); }
+        .input-styled:focus {
+          border-color: #4f46e5 !important;
+          box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+          background: #ffffff !important;
+        }
 
-        .btn-action { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; margin-top: 10px; }
-        .btn-whatsapp { background: #25D366; color: white; }
-        .btn-download { background: #0e2a5a; color: white; }
-        .btn-action:hover { filter: brightness(1.1); transform: translateY(-2px); }
-
-        .custom-color-input { -webkit-appearance: none; border: none; width: 100%; height: 40px; cursor: pointer; border-radius: 8px; background: none; }
-        .custom-color-input::-webkit-color-swatch { border-radius: 8px; border: 2px solid #e2e8f0; }
-
-        .toggle-gradient {
+        .btn-whatsapp-killer {
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          color: white;
+          width: 100%;
+          padding: 18px 22px;
+          border-radius: 16px;
+          border: none;
+          font-weight: 800;
+          cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background: #f1f5f9;
-          padding: 12px;
-          border-radius: 12px;
-          margin-top: 10px;
-          cursor: pointer;
+          box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+          transition: all 0.25s ease;
         }
+        .btn-whatsapp-killer:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 14px 30px -4px rgba(16, 185, 129, 0.6);
+        }
+
+        @keyframes pulse-dot {
+          0% { transform: scale(0.95); boxShadow: 0 0 0 0 rgba(79, 70, 229, 0.7); }
+          70% { transform: scale(1); boxShadow: 0 0 0 6px rgba(79, 70, 229, 0); }
+          100% { transform: scale(0.95); boxShadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+        }
+
+        .pulse-badge {
+          display: inline-block;
+          width: 8px;
+          height: 8px;
+          background-color: #4f46e5;
+          border-radius: 50%;
+          animation: pulse-dot 2s infinite;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
       `}</style>
 
       <main style={styles.mainContainer}>
+        {/* PANEL IZQUIERDO */}
         <section style={styles.panelLeft}>
           <div style={styles.cardInternal}>
-            <header style={{ marginBottom: '25px' }}>
-              <span style={styles.badge}><FaTerminal /> IMPULSAPAY_CORE_V6.5</span>
-              <h1 style={styles.title}>ImpulsaPay Studio</h1>
-            </header>
-
-            <div style={styles.controlGroup}>
-              <label style={styles.label}><FaRocket /> NEGOCIO</label>
-              <input style={styles.input} value={negocio} onChange={(e) => setNegocio(e.target.value)} />
-            </div>
-
-            <div style={styles.controlGroup}>
-              <label style={styles.label}><FaQuoteLeft /> ESLOGAN</label>
-              <input style={styles.input} value={mensaje} onChange={(e) => setMensaje(e.target.value)} />
-            </div>
-
-            <div style={styles.controlGroup}>
-              <label style={styles.label}><FaPalette /> PERSONALIZAR COLORES</label>
-              <div style={styles.colorGrid}>
-                {presets.map((p, i) => (
-                  <div key={i} className={`color-swatch ${colorPrimario === p.p ? 'active' : ''}`} onClick={() => { setColorPrimario(p.p); setColorSecundario(p.s); }}>
-                    <div style={{ flex: 1, background: p.p }} />
-                    <div style={{ flex: 1, background: p.s }} />
-                  </div>
-                ))}
-              </div>
-              
-              <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                <div style={{ flex: 1 }}>
-                  <span style={{ fontSize: '9px', fontWeight: 800 }}>PRIMARIO</span>
-                  <input type="color" className="custom-color-input" value={colorPrimario} onChange={(e) => setColorPrimario(e.target.value)} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <span style={{ fontSize: '9px', fontWeight: 800 }}>ACENTO / GRAD</span>
-                  <input type="color" className="custom-color-input" value={colorSecundario} onChange={(e) => setColorSecundario(e.target.value)} />
-                </div>
-              </div>
-
-              <div className="toggle-gradient" onClick={() => setUsarDegradado(!usarDegradado)}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>
-                   <FaMagic style={{ marginRight: '8px' }} /> ACTIVAR DEGRADADO
+            
+            <div style={styles.sectionBox}>
+              <div style={styles.sectionHeader}>
+                <span style={styles.sectionTitle}>
+                  <span style={styles.iconBox}><FaQrcode size={12} color="#4f46e5"/></span> 
+                  Datos de la Tienda
                 </span>
-                <input type="checkbox" checked={usarDegradado} readOnly />
+              </div>
+
+              <div style={styles.controlGroup}>
+                <label style={styles.label}>NOMBRE COMERCIAL</label>
+                <input className="input-styled" style={styles.input} value={negocio} onChange={(e) => setNegocio(e.target.value)} />
+              </div>
+
+              <div style={styles.controlGroup}>
+                <label style={styles.label}>ESLOGAN O MENSAJE DE COBRO</label>
+                <input className="input-styled" style={styles.input} value={mensaje} onChange={(e) => setMensaje(e.target.value)} />
+              </div>
+
+              <div style={styles.controlGroup}>
+                <label style={styles.label}>ADJUNTAR LOGOTIPO</label>
+                <label style={styles.uploadBtn}>
+                  <FaUpload color="#4f46e5" size={14} /> Cargar imagen (PNG / JPG)
+                  <input type="file" hidden onChange={handleImageUpload} />
+                </label>
+              </div>
+
+              <div style={styles.controlGroup}>
+                <label style={styles.label}><FaShapes /> FORMA DE LA IMAGEN CENTRAL</label>
+                <select className="input-styled" style={styles.input} value={formaImagen} onChange={(e) => setFormaImagen(e.target.value)}>
+                  <option value="50%">Círculo perfecto</option>
+                  <option value="12px">Cuadrado redondeado</option>
+                  <option value="0px">Cuadrado completo</option>
+                </select>
               </div>
             </div>
 
-            <label style={styles.uploadBtn}>
-              <FaImage /> LOGO DEL QR
-              <input type="file" hidden onChange={handleImageUpload} />
-            </label>
+            <div style={{ ...styles.sectionBox, marginTop: '16px' }}>
+              <div style={styles.sectionHeader}>
+                <span style={styles.sectionTitle}>
+                  <span style={styles.iconBox}><FaLink size={12} color="#4f46e5"/></span> 
+                  Enlace de Pago / Destino
+                </span>
+                <span style={{ fontSize: '11px', color: '#4f46e5', fontWeight: '800', background: '#e0e7ff', padding: '4px 10px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <FaCheckCircle size={10} /> Activo
+                </span>
+              </div>
 
-            <div style={{ marginTop: 'auto', paddingTop: '15px' }}>
-              <button className="btn-action btn-whatsapp" onClick={compartirWhatsApp}>
-                <FaWhatsapp size={20} /> COMPARTIR POR WA
-              </button>
-              <button className="btn-action btn-download" onClick={descargarQR}>
-                <FaDownload /> DESCARGAR PNG
-              </button>
+              <div style={styles.controlGroup}>
+                <label style={styles.label}>ENLACE WEB A DONDE APUNTA EL QR</label>
+                <input className="input-styled" style={styles.input} value={enlaceCompleto} onChange={(e) => setEnlaceCompleto(e.target.value)} />
+              </div>
             </div>
+
+            <div style={{ ...styles.sectionBox, marginTop: '16px', borderBottom: 'none' }}>
+              <div style={styles.sectionHeader}>
+                <span style={styles.sectionTitle}>
+                  <span style={styles.iconBox}><FaSlidersH size={12} color="#4f46e5"/></span> 
+                  Personalización Visual y Tipografía
+                </span>
+              </div>
+
+              <div style={styles.controlGroup}>
+                <label style={styles.label}><FaFont /> TIPO DE LETRA</label>
+                <select className="input-styled" style={styles.input} value={tipoFuente} onChange={(e) => setTipoFuente(e.target.value)}>
+                  <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans (Moderna)</option>
+                  <option value="'Inter', sans-serif">Inter (Limpia y corporativa)</option>
+                  <option value="'Poppins', sans-serif">Poppins (Amigable)</option>
+                  <option value="'Roboto', sans-serif">Roboto (Clásica)</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '14px' }}>
+                <div style={{ flex: 1, background: '#f8fafc', padding: '10px 12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <label style={styles.label}>COLOR PRIMARIO</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
+                    <input type="color" value={colorPrimario} onChange={(e) => setColorPrimario(e.target.value)} style={styles.colorInput} />
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{colorPrimario}</span>
+                  </div>
+                </div>
+                <div style={{ flex: 1, background: '#f8fafc', padding: '10px 12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <label style={styles.label}>COLOR SECUNDARIO</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
+                    <input type="color" value={colorSecundario} onChange={(e) => setColorSecundario(e.target.value)} style={styles.colorInput} />
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{colorSecundario}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={styles.controlGroup}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <label style={styles.label}>TAMAÑO QR</label>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#4f46e5' }}>{tamanoQR}px</span>
+                </div>
+                <input type="range" min="180" max="300" value={tamanoQR} onChange={(e) => setTamanoQR(Number(e.target.value))} style={styles.rangeInput} />
+              </div>
+
+              <div style={styles.controlGroup}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <label style={styles.label}>BORDEADO</label>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#4f46e5' }}>{bordeadoQR}px</span>
+                </div>
+                <input type="range" min="0" max="40" value={bordeadoQR} onChange={(e) => setBordeadoQR(Number(e.target.value))} style={styles.rangeInput} />
+              </div>
+
+              <div style={styles.controlGroup}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <label style={styles.label}>TAMAÑO LOGO CENTRAL</label>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#4f46e5' }}>{tamanoLogo}px</span>
+                </div>
+                <input type="range" min="35" max="85" value={tamanoLogo} onChange={(e) => setTamanoLogo(Number(e.target.value))} style={styles.rangeInput} />
+              </div>
+            </div>
+
           </div>
         </section>
 
+        {/* PANEL DERECHO */}
         <section style={styles.panelRight}>
+          {/* APARTADO DECORATIVO DE ESTADO */}
+          <div style={styles.decorativeBanner}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={styles.decorativeIconBox}>
+                <FaShieldAlt size={16} color="#4f46e5" />
+              </div>
+              <div>
+                <span style={{ fontSize: '12px', fontWeight: '800', color: '#4f46e5', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  SISTEMA DE PAGO CERTIFICADO <span className="pulse-badge"></span>
+                </span>
+                <span style={{ fontSize: '10px', color: '#64748b', fontWeight: '600' }}>
+                  Enlace cifrado de alta seguridad para transacciones comerciales
+                </span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#e0e7ff', padding: '6px 10px', borderRadius: '10px' }}>
+              <FaWifi size={12} color="#4f46e5" />
+              <span style={{ fontSize: '10px', fontWeight: '700', color: '#4f46e5' }}>En Línea</span>
+            </div>
+          </div>
+
           <div style={styles.qrPoster}>
-            <h2 style={{ ...styles.promoText, color: colorPrimario }}>{negocio}</h2>
-            <div ref={qrRef} style={styles.qrWrapper}>
+            <div style={{ background: '#fce7f3', color: '#db2777', padding: '6px 16px', borderRadius: '20px', fontSize: '11px', fontWeight: '800', display: 'inline-block', marginBottom: '14px', fontFamily: tipoFuente, border: '1px solid #fbcfe8' }}>
+              🛍️ Tienda de Ropa y Accesorios
+            </div>
+
+            <h2 style={{ ...styles.promoText, color: colorPrimario, fontFamily: tipoFuente }}>{negocio}</h2>
+            
+            <div ref={qrRef} style={{ ...styles.qrWrapper, borderRadius: `${bordeadoQR}px` }}>
               <QRCodeSVG 
-                value={`IMPULSAPAY|${negocio}`}
-                size={300}
+                value={enlaceCompleto}
+                size={tamanoQR} 
                 level="H"
-                fgColor={usarDegradado ? undefined : colorPrimario}
+                fgColor={colorPrimario}
                 imageSettings={{ 
                   src: imagenNegocio, 
-                  height: 75, 
-                  width: 75, 
+                  height: tamanoLogo, 
+                  width: tamanoLogo, 
                   excavate: true 
                 }}
-              >
-                {usarDegradado && (
-                  <defs>
-                    <linearGradient id="qr-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor={colorPrimario} />
-                      <stop offset="100%" stopColor={colorSecundario} />
-                    </linearGradient>
-                  </defs>
-                )}
-                {usarDegradado && <style>{`rect { fill: url(#qr-grad); }`}</style>}
-              </QRCodeSVG>
-            </div>
-            <p style={{ ...styles.slongan, color: usarDegradado ? colorPrimario : colorSecundario }}>{mensaje}</p>
-            <div style={styles.footer}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FaShieldAlt color={colorPrimario} /> SECURE ASSET
+              />
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: `${tamanoLogo}px`,
+                height: `${tamanoLogo}px`,
+                borderRadius: formaImagen,
+                overflow: 'hidden',
+                pointerEvents: 'none',
+                boxShadow: '0 0 0 4px white, 0 4px 10px rgba(0,0,0,0.15)'
+              }}>
+                <img src={imagenNegocio} alt="Logo QR" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <span>MÉRIDA • 2026</span>
             </div>
+
+            <p style={{ ...styles.slongan, color: colorSecundario, fontFamily: tipoFuente }}>{mensaje}</p>
+            <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px', fontWeight: '500', fontFamily: tipoFuente }}>Escanea para pagar con cualquier app bancaria</p>
+
+            <div style={{ ...styles.footer, fontFamily: tipoFuente }}>
+              <span style={{ color: colorPrimario, fontWeight: '800', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>🛡️ Pago Seguro</span>
+              <span style={{ fontSize: '11px', background: '#f1f5f9', padding: '2px 8px', borderRadius: '6px' }}>SPEI / CODI</span>
+            </div>
+          </div>
+
+          <div style={{ width: '100%', marginTop: '16px' }}>
+            <button className="btn-whatsapp-killer" onClick={compartirWhatsApp}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '8px', borderRadius: '12px', display: 'flex' }}>
+                  <FaWhatsapp size={24} />
+                </div>
+                <div style={{ textAlign: 'left' }}>
+                  <span style={{ display: 'block', fontSize: '14px', lineHeight: '1.2', fontWeight: '800', letterSpacing: '0.3px' }}>COBRAR POR WHATSAPP AHORA</span>
+                  <span style={{ display: 'block', fontSize: '11px', fontWeight: '500', opacity: '0.9' }}>Envía el QR oficial + enlace directo al chat</span>
+                </div>
+              </div>
+              <span style={{ background: '#f59e0b', color: '#fff', fontSize: '10px', padding: '5px 10px', borderRadius: '8px', fontWeight: '800', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>⚡ 1-CLIC</span>
+            </button>
           </div>
         </section>
       </main>
@@ -231,23 +359,218 @@ const GenerarQR = () => {
 };
 
 const styles = {
-  layout: { height: '100vh', width: '100%', fontFamily: "'Plus Jakarta Sans', sans-serif", background: '#f8fafc' },
-  mainContainer: { display: 'flex', height: '100%', width: '100%' },
-  panelLeft: { flex: 1, padding: '30px', display: 'flex', flexDirection: 'column' },
-  cardInternal: { background: 'white', padding: '30px', borderRadius: '24px', height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' },
-  panelRight: { flex: 1, padding: '30px', display: 'flex', justifyContent: 'center', alignItems: 'center' },
-  qrPoster: { background: 'white', padding: '50px', borderRadius: '32px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)', width: '100%', maxWidth: '480px', textAlign: 'center' },
-  badge: { fontSize: '9px', fontWeight: '800', color: '#94a3b8', letterSpacing: '2px' },
-  title: { fontSize: '22px', color: '#0e2a5a', fontWeight: '800' },
-  controlGroup: { marginBottom: '18px' },
-  label: { fontSize: '10px', fontWeight: '800', color: '#64748b', marginBottom: '8px', display: 'block' },
-  input: { width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none' },
-  colorGrid: { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px' },
-  uploadBtn: { background: '#f8fafc', padding: '12px', borderRadius: '10px', textAlign: 'center', fontSize: '11px', fontWeight: '700', cursor: 'pointer', border: '1px dashed #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' },
-  qrWrapper: { padding: '20px', background: 'white', borderRadius: '24px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', display: 'inline-block' },
-  promoText: { fontFamily: "'JetBrains Mono', monospace", fontSize: '20px', letterSpacing: '4px', marginBottom: '25px', textTransform: 'uppercase' },
-  slongan: { marginTop: '25px', fontSize: '18px', fontWeight: '800' },
-  footer: { marginTop: '35px', borderTop: '1px solid #f1f5f9', paddingTop: '15px', display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94a3b8', fontWeight: '700' }
+  layout: { 
+    minHeight: '100vh', 
+    width: '100%', 
+    fontFamily: "'Plus Jakarta Sans', sans-serif", 
+    background: '#f1f5f9', 
+    padding: '24px 20px 40px 20px' 
+  },
+
+  mainContainer: { 
+    display: 'flex', 
+    width: '100%', 
+    maxWidth: '1400px', 
+    margin: '0 auto', 
+    gap: '24px', 
+    alignItems: 'flex-start',
+    padding: '0'
+  },
+
+  panelLeft: { 
+    flex: 1.15, 
+    display: 'flex', 
+    flexDirection: 'column',
+    minWidth: 0
+  },
+
+  cardInternal: { 
+    background: '#ffffff', 
+    padding: '24px 28px', 
+    borderRadius: '24px', 
+    border: '1px solid #e2e8f0', 
+    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04)', 
+    height: '100%', 
+    display: 'flex', 
+    flexDirection: 'column', 
+    justifyContent: 'space-between' 
+  },
+
+  sectionBox: { 
+    borderBottom: '1px solid #f1f5f9', 
+    paddingBottom: '16px' 
+  },
+
+  sectionHeader: { 
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: '12px' 
+  },
+
+  sectionTitle: { 
+    fontSize: '13px', 
+    fontWeight: '800', 
+    color: '#4f46e5', 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: '8px',
+    letterSpacing: '0.3px'
+  },
+
+  iconBox: {
+    background: '#e0e7ff',
+    padding: '6px',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+
+  panelRight: { 
+    flex: 0.85, 
+    display: 'flex', 
+    flexDirection: 'column', 
+    justifyContent: 'flex-start', 
+    alignItems: 'center', 
+    maxWidth: '540px',
+    minWidth: 0
+  },
+
+  decorativeBanner: { 
+    width: '100%', 
+    marginBottom: '16px', 
+    background: '#ffffff', 
+    padding: '14px 18px', 
+    borderRadius: '20px', 
+    border: '1px solid #e2e8f0', 
+    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.04)',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+
+  decorativeIconBox: {
+    background: '#e0e7ff',
+    padding: '10px',
+    borderRadius: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+
+  qrPoster: { 
+    background: '#ffffff', 
+    padding: '32px 24px', 
+    borderRadius: '24px', 
+    boxShadow: '0 20px 40px -10px rgba(79, 70, 229, 0.08)', 
+    width: '100%', 
+    textAlign: 'center', 
+    border: '1px solid #e2e8f0', 
+    flex: 1, 
+    display: 'flex', 
+    flexDirection: 'column', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+
+  controlGroup: { 
+    marginBottom: '12px', 
+    textAlign: 'left' 
+  },
+
+  label: { 
+    fontSize: '10px', 
+    fontWeight: '800', 
+    color: '#64748b', 
+    marginBottom: '6px', 
+    display: 'block', 
+    letterSpacing: '0.6px' 
+  },
+
+  input: { 
+    width: '100%', 
+    padding: '11px 14px', 
+    borderRadius: '10px', 
+    border: '1px solid #cbd5e1', 
+    fontSize: '13px', 
+    outline: 'none', 
+    background: '#f8fafc', 
+    color: '#0f172a', 
+    fontWeight: '600',
+    transition: 'all 0.2s ease'
+  },
+
+  colorInput: { 
+    border: 'none', 
+    width: '36px', 
+    height: '36px', 
+    borderRadius: '8px', 
+    cursor: 'pointer', 
+    background: 'none' 
+  },
+
+  rangeInput: { 
+    width: '100%', 
+    accentColor: '#4f46e5', 
+    cursor: 'pointer', 
+    height: '6px' 
+  },
+
+  uploadBtn: { 
+    background: '#f8fafc', 
+    padding: '12px', 
+    borderRadius: '10px', 
+    textAlign: 'center', 
+    fontSize: '12px', 
+    fontWeight: '700', 
+    cursor: 'pointer', 
+    border: '2px dashed #cbd5e1', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    gap: '8px', 
+    color: '#4f46e5',
+    transition: 'all 0.2s'
+  },
+
+  qrWrapper: { 
+    padding: '16px', 
+    background: '#ffffff', 
+    display: 'inline-block', 
+    border: '1px solid #e2e8f0', 
+    position: 'relative', 
+    transition: 'all 0.2s', 
+    margin: '10px 0',
+    boxShadow: '0 8px 20px rgba(0,0,0,0.04)'
+  },
+
+  promoText: { 
+    fontSize: '22px', 
+    letterSpacing: '0.5px', 
+    marginBottom: '4px', 
+    textTransform: 'uppercase', 
+    fontWeight: '800' 
+  },
+
+  slongan: { 
+    marginTop: '10px', 
+    fontSize: '15px', 
+    fontWeight: '800', 
+    textTransform: 'uppercase' 
+  },
+
+  footer: { 
+    marginTop: '16px', 
+    borderTop: '1px solid #f1f5f9', 
+    paddingTop: '14px', 
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    width: '100%', 
+    fontSize: '11px', 
+    color: '#64748b', 
+    fontWeight: '700' 
+  }
 };
 
 export default GenerarQR;

@@ -8,11 +8,20 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
+    console.log("🚀 API utilizada:", API_URL);
+    console.log("📡 Endpoint login:", `${API_URL}/login`);
+
     try {
+<<<<<<< HEAD
       const res = await fetch("http://127.0.0.1:8000/api/login", {
+=======
+      const res = await fetch(`${API_URL}/login`, {
+>>>>>>> equipo-produccion
         
         method: "POST",
         headers: {
@@ -25,7 +34,7 @@ export default function Login() {
       });
 
       const data = await res.json();
-      
+            
 
       console.log("Respuesta login:", data); 
       

@@ -6,6 +6,7 @@ import Axios from "axios";
 const ChangeEmailModal = ({ show, handleClose, currentPassword, onSave }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+const API_URL = import.meta.env.VITE_API_URL;
 
   const handleSubmit = () => {
 
@@ -21,7 +22,7 @@ const ChangeEmailModal = ({ show, handleClose, currentPassword, onSave }) => {
 
 const token = localStorage.getItem("token");
 
-Axios.put("http://localhost/api/cliente/actualizar", {
+Axios.put(`${API_URL}/cliente/actualizar`, {
   current_password: password,
   correo: email
 }, {

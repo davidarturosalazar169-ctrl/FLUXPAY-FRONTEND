@@ -20,6 +20,7 @@ import CerrarSesion from "../CerrarSesion";
 export default function RolesPermisos(){
 
 const navigate = useNavigate();
+const API_URL = import.meta.env.VITE_API_URL;
 
 const [roles,setRoles]=useState([]);
 const [permisos,setPermisos]=useState([]);
@@ -40,7 +41,7 @@ useEffect(()=>{
 
 const obtenerRoles=async()=>{
 
-const res=await fetch("http://127.0.0.1:8000/api/roles",{
+const res=await fetch(`${API_URL}/roles`,{
 headers:{
 Authorization:"Bearer "+localStorage.getItem("token"),
 Accept:"application/json"
@@ -61,7 +62,7 @@ setRolSeleccionado(data[0].id);
 
 const obtenerPermisos=async()=>{
 
-const res=await fetch("http://127.0.0.1:8000/api/permisos",{
+const res=await fetch(`${API_URL}/permisos`,{
 headers:{
 Authorization:"Bearer "+localStorage.getItem("token"),
 Accept:"application/json"
@@ -76,7 +77,7 @@ setPermisos(data);
 
 const obtenerPermisosRol=async()=>{
 
-const res=await fetch("http://127.0.0.1:8000/api/roles/"+rolSeleccionado+"/permisos",{
+const res=await fetch(`${API_URL}/roles/`+rolSeleccionado+"/permisos",{
 headers:{
 Authorization:"Bearer "+localStorage.getItem("token"),
 Accept:"application/json"
@@ -105,7 +106,7 @@ setPermisosRol([...permisosRol,id]);
 
 const guardar=async()=>{
 
-await fetch("http://127.0.0.1:8000/api/roles/"+rolSeleccionado+"/permisos",{
+await fetch(`${API_URL}/roles/`+rolSeleccionado+"/permisos",{
 
 method:"PUT",
 

@@ -18,14 +18,14 @@ import ImpulsaPlayCliente from "./ImpulsaPlayCliente.jpeg";
 function ClienteTarjeta() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-
+  const API_URL = import.meta.env.VITE_API_URL;
   const [user, setUser] = useState({
     nombre: "",
     correo: ""
   });
 
   useEffect(() => {
-    axios.get("http://localhost/api/cliente/configuracion", {
+    axios.get(`${API_URL}/cliente/configuracion`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -45,7 +45,7 @@ function ClienteTarjeta() {
 useEffect(() => {
   const token = localStorage.getItem("token");
 
-  axios.get("http://127.0.0.1:8000/api/tarjetas", {
+  axios.get(`${API_URL}/tarjetas`, {
     headers: {
       Authorization: `Bearer ${token}`
     }
@@ -61,7 +61,7 @@ const handlesave = async (data) => {
   try {
     const token = localStorage.getItem("token");
 
-    const res = await axios.post("http://127.0.0.1:8000/api/tarjetas", {
+    const res = await axios.post(`${API_URL}/tarjetas`, {
       brand: data.brand,
       last4: data.last4,
       exp_month: data.exp_month,
@@ -85,7 +85,7 @@ const borrarTarjeta = async (id) => {
   try {
     const token = localStorage.getItem("token");
 
-    await axios.delete(`http://127.0.0.1:8000/api/tarjetas/${id}`, {
+    await axios.delete(`${API_URL}/tarjetas/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
