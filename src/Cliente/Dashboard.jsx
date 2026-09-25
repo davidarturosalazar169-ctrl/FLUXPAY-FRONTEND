@@ -23,6 +23,8 @@ export default function DashboardCliente() {
   const navigate = useNavigate();
 const token = localStorage.getItem("token");
 
+
+
 const [user, setUser] = useState({
   nombre: "",
   correo: ""
