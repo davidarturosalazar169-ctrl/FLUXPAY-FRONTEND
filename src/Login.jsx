@@ -17,7 +17,7 @@ export default function Login() {
     console.log("📡 Endpoint login:", `${API_URL}/login`);
 
     try {
-      const res = await fetch(`${API_URL}/login`, {
+      const res = await fetch("http://127.0.0.1:8000/api/login", {
         
         method: "POST",
         headers: {

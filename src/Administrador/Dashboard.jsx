@@ -3,9 +3,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Chart from "react-apexcharts";
 import { tienePermiso } from "../utils/permisos";
+import AdminNotifications from "./AdminNotifications";
 
 import {
-  FaHome, FaStore, FaChartBar, FaHeadset, FaBell, FaDollarSign,
+  FaHome, FaStore, FaChartBar, FaHeadset, FaDollarSign,
   FaShoppingCart, FaUsers, FaCog,FaUserLock, FaBoxes 
 } from "react-icons/fa";
 import CerrarSesion from "../CerrarSesion";
@@ -136,9 +137,7 @@ console.log("¿Tiene permiso reportes_ver?", tienePermiso("reportes_ver"));
                 <span className="status-indicator"></span>
               </div>
 
-              <button className="notification-btn">
-                <FaBell />
-              </button>
+              <AdminNotifications />
             </div>
           </div>
         </header>

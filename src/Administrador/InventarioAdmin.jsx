@@ -1,6 +1,7 @@
 import "./InventarioAdmin.css";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 
 import {
   FaHome,
@@ -31,6 +32,12 @@ useEffect(() => {
     cargarInventario();
 }, []);
 const [buscar, setBuscar] = useState("");
+const [inventarioEditando, setInventarioEditando] = useState(null);
+const [formInventario, setFormInventario] = useState({
+    stock: 0,
+    stock_minimo: 0,
+    en_produccion: 0
+});
 
 
 const cargarInventario = async () => {
@@ -63,6 +70,67 @@ const cargarInventario = async () => {
 
     }
 
+};
+
+const abrirEdicion = (item) => {
+    setInventarioEditando(item);
+    setFormInventario({
+        stock: item.stock,
+        stock_minimo: item.stock_minimo,
+        en_produccion: item.en_produccion
+    });
+};
+
+const cerrarEdicion = () => {
+    setInventarioEditando(null);
+};
+
+const actualizarInventario = async (event) => {
+    event.preventDefault();
+
+    const confirmacion = await Swal.fire({
+        title: "¿Guardar cambios?",
+        text: "Se actualizarán las cantidades y el estado del inventario.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Sí, guardar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#0d2b5c"
+    });
+
+    if (!confirmacion.isConfirmed) return;
+
+    try {
+        const response = await fetch(`http://127.0.0.1:8000/api/inventario/${inventarioEditando.id}`, {
+            method: "PUT",
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token"),
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                stock: Number(formInventario.stock),
+                stock_minimo: Number(formInventario.stock_minimo),
+                en_produccion: Number(formInventario.en_produccion)
+            })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || "No se pudo actualizar el inventario.");
+        }
+
+        await Swal.fire({
+            title: "Inventario actualizado",
+            text: `El estado actual es: ${data.estado}.`,
+            icon: "success",
+            confirmButtonColor: "#0d2b5c"
+        });
+        cerrarEdicion();
+        cargarInventario();
+    } catch (error) {
+        Swal.fire("Error", error.message, "error");
+    }
 };
 
 const inventarioFiltrado = inventario.filter(item => {
@@ -293,7 +361,7 @@ const inventarioFiltrado = inventario.filter(item => {
                     </td>
                     <td>
 
-    <button className="btn-editar">
+    <button className="btn-editar" onClick={() => abrirEdicion(item)}>
 
         Editar
 
@@ -311,6 +379,61 @@ const inventarioFiltrado = inventario.filter(item => {
     </table>
 
 </main>
+
+{inventarioEditando && (
+    <div className="modal-overlay" role="presentation" onMouseDown={(event) => {
+        if (event.target === event.currentTarget) cerrarEdicion();
+    }}>
+        <div className="modal-content inventario-modal" role="dialog" aria-modal="true" aria-labelledby="editar-inventario-titulo">
+            <h2 id="editar-inventario-titulo">Editar inventario</h2>
+            <p className="modal-description">
+                {inventarioEditando.producto.nombre} · {inventarioEditando.negocio.nombre}
+            </p>
+            <form onSubmit={actualizarInventario}>
+                <div className="form-group">
+                    <label htmlFor="inventario-stock">Stock disponible</label>
+                    <input
+                        id="inventario-stock"
+                        type="number"
+                        min="0"
+                        step="1"
+                        required
+                        value={formInventario.stock}
+                        onChange={(event) => setFormInventario({ ...formInventario, stock: event.target.value })}
+                    />
+                </div>
+                <div className="form-group">
+                    <label htmlFor="inventario-minimo">Stock mínimo</label>
+                    <input
+                        id="inventario-minimo"
+                        type="number"
+                        min="0"
+                        step="1"
+                        required
+                        value={formInventario.stock_minimo}
+                        onChange={(event) => setFormInventario({ ...formInventario, stock_minimo: event.target.value })}
+                    />
+                </div>
+                <div className="form-group">
+                    <label htmlFor="inventario-produccion">En producción</label>
+                    <input
+                        id="inventario-produccion"
+                        type="number"
+                        min="0"
+                        step="1"
+                        required
+                        value={formInventario.en_produccion}
+                        onChange={(event) => setFormInventario({ ...formInventario, en_produccion: event.target.value })}
+                    />
+                </div>
+                <div className="modal-actions">
+                    <button type="submit" className="btn-primary">Guardar cambios</button>
+                    <button type="button" className="btn-dark" onClick={cerrarEdicion}>Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+)}
 
     </div>
 
