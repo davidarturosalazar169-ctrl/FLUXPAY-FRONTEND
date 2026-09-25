@@ -24,6 +24,8 @@ const stripePromise = loadStripe(
 
     const [pedido, setPedido] = useState(null);
 
+    const totalURL = parseFloat(params.get("total"));
+
     const [idPedido, setIdPedido] = useState(null);
 
     const [clientSecret, setClientSecret] = useState("");
@@ -52,7 +54,7 @@ const obtenerPedido = async (id) => {
         console.log(res.data);
 
         setPedido({
-            total: res.data.pedido.total,
+            total: totalURL,
             productos: res.data.productos.map(p => ({
                 id: p.idproducto,
                 nombre: p.producto_nombre,
@@ -204,7 +206,7 @@ const obtenerPedido = async (id) => {
 
                                 <h2 className="impulpay-total">
 
-                                    Total:
+                                    Total mas comisión:
                                     <span>${pedido.total}</span>
 
                                 </h2>

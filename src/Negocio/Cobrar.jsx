@@ -18,7 +18,8 @@ const FluxPaySystem = () => {
   const [cargandoQr, setCargandoQr] = useState(false);
   const [idTicketCreado, setIdTicketCreado] = useState(null);
   const [idPedido, setIdPedido] = useState(null);
-
+  const [numeroWhatsApp, setNumeroWhatsApp] = useState("");
+  const [enviandoWhatsApp, setEnviandoWhatsApp] = useState(false);
 const productos = [
   { id: 1, nombre: "Silla gamer ergonomica Ultra", precio: 3017.00, code: "750101" },
   { id: 2, nombre: "Agenda 2026 Pro", precio: 2033.00, code: "750102" },
@@ -32,15 +33,14 @@ const productos = [
   const subtotal = selectedProducts.reduce((acc, p) => acc + (p.precio * p.cant), 0);
   const gananciaFlux = subtotal > 0 ? (subtotal * 0.02) : 0;
 
-  const total = metodo === 'qr' || metodo === 'card'
-    ? (subtotal + gananciaFlux + 3.00) / (1 - 0.036)
-    : subtotal;
+const total = (subtotal + gananciaFlux + 3.00) / (1 - 0.036);
 
   const montoNumerico = parseFloat(efectivoRecibido) || 0;
   const cambio = montoNumerico > 0 ? montoNumerico - total : 0;
 
   // --- SOLICITAR QR DINÁMICO DE TU PASARELA ---
 const handleSeleccionarMetodoQR = async () => {
+  console.log("TOTAL QUE SE ENVIA AL QR:", total);
     if (selectedProducts.length === 0) {
         alert("Agrega productos primero");
         return;
@@ -71,11 +71,8 @@ productos: selectedProducts.map(p => ({
 
         const pedidoId = respuesta.data.pedido_id;
 
-        setIdPedido(pedidoId);
-
-
-const urlPago = `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=${pedidoId}`;
-        console.log("URL DEL QR:", urlPago);
+const urlPago = `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=${pedidoId}&total=${total}`;
+      console.log("URL DEL QR:", urlPago);
 
         setLinkDePagoCliente(urlPago);
 
@@ -111,39 +108,20 @@ const urlPago = `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=
 };
 
   // --- REVISAR SI EL CLIENTE YA PAGÓ DESDE EL CELULAR ---
-useEffect(() => {
-  let verificadorBaseDatos;
-
-  if (showModal && metodo === 'qr' && idPedido) {
-    verificadorBaseDatos = setInterval(async () => {
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/pedido/${idPedido}`
-        );
-
-        const data = await res.json();
-
-        console.log("Estado del pedido:", data.pedido?.status);
-
-        if (data.pedido?.status === 'pagado') {
-          clearInterval(verificadorBaseDatos);
-
-          setShowModal(false);
-          setMetodo(null);
-          setLinkDePagoCliente(null);
-          setIdPedido(null);
-
-          finalizarVenta();
-        }
-
-      } catch (e) {
-        console.log("Error verificando pago:", e);
-      }
-    }, 3000);
-  }
-
-  return () => clearInterval(verificadorBaseDatos);
-}, [showModal, metodo, idPedido]);
+  useEffect(() => {
+    let verificadorBaseDatos;
+    if (showModal && metodo === 'qr') {
+      // Short Polling: Cada 3 segundos va a tu Laravel a revisar si el status del movimiento cambió a 1
+      verificadorBaseDatos = setInterval(async () => {
+        try {
+          // const res = await fetch(`http://localhost:8000/api/verificar-pago/${idTicketCreado}`);
+          // const data = await res.json();
+          // if(data.pagado) { finalizarVenta(); clearInterval(verificadorBaseDatos); }
+        } catch (e) { console.log(e); }
+      }, 3000);
+    }
+    return () => clearInterval(verificadorBaseDatos);
+  }, [showModal, metodo]);
 
   // Resto de tus métodos nativos (Barcode, add, remove, ticket)...
   const handleBarcodeSearch = (e) => { e.preventDefault(); const p = productos.find(x => x.code === barcodeInput); if (p) { addProduct(p); setBarcodeInput(""); } };
@@ -151,46 +129,48 @@ useEffect(() => {
   const removeProduct = (id) => setSelectedProducts(prev => prev.filter(p => p.id !== id));
   const finalizarVenta = () => { setVentaFinalizada({ productos: [...selectedProducts], total, subtotal, comision: total - subtotal, metodo, fecha: new Date().toLocaleString() }); setShowModal(false); };
   const resetTodo = () => { setVentaFinalizada(null); setSelectedProducts([]); setMetodo(null); setEfectivoRecibido(""); setLinkDePagoCliente(""); };
-  const compartirQR = async () => {
-  const qr = document.getElementById("fluxpay-qr");
 
-  if (!qr) {
-    alert("No se encontró el código QR");
-    return;
-  }
-
-  const svgData = new XMLSerializer().serializeToString(qr);
-  const svgBlob = new Blob([svgData], {
-    type: "image/svg+xml;charset=utf-8"
-  });
-
-  const url = URL.createObjectURL(svgBlob);
-  const img = new Image();
-
-  img.onload = async () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 500;
-    canvas.height = 500;
-
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, 500, 500);
-
-    ctx.drawImage(img, 0, 0, 500, 500);
-
-    URL.revokeObjectURL(url);
-
-    canvas.toBlob(async (blob) => {
-      if (!blob) {
-        alert("No se pudo generar la imagen");
+  // --- Convierte el QR (SVG) que está en pantalla a una imagen PNG (Blob) ---
+  const generarImagenQR = () => {
+    return new Promise((resolve, reject) => {
+      const qr = document.getElementById("fluxpay-qr");
+      if (!qr) {
+        reject(new Error("No se encontró el código QR"));
         return;
       }
 
-      const archivo = new File(
-        [blob],
-        "FluxPay-QR.png",
-        { type: "image/png" }
-      );
+      const svgData = new XMLSerializer().serializeToString(qr);
+      const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(svgBlob);
+      const img = new Image();
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 500;
+        canvas.height = 500;
+
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, 500, 500);
+        ctx.drawImage(img, 0, 0, 500, 500);
+
+        URL.revokeObjectURL(url);
+
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error("No se pudo generar la imagen"));
+        }, "image/png");
+      };
+
+      img.onerror = () => reject(new Error("No se pudo cargar el QR"));
+      img.src = url;
+    });
+  };
+
+  const compartirQR = async () => {
+    try {
+      const blob = await generarImagenQR();
+      const archivo = new File([blob], "FluxPay-QR.png", { type: "image/png" });
 
       if (navigator.share && navigator.canShare?.({ files: [archivo] })) {
         await navigator.share({
@@ -201,11 +181,69 @@ useEffect(() => {
       } else {
         alert("Este dispositivo o navegador no permite compartir imágenes directamente.");
       }
-    }, "image/png");
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "No se pudo compartir el QR");
+    }
   };
 
-  img.src = url;
-};
+  // --- Envía la IMAGEN del QR (no el link) a un número específico de WhatsApp ---
+  const enviarWhatsAppNumero = async () => {
+    if (!numeroWhatsApp) {
+      alert("Escribe un número de WhatsApp");
+      return;
+    }
+
+    let numero = numeroWhatsApp.replace(/\D/g, "");
+    if (numero.length === 10) {
+      numero = "52" + numero;
+    }
+
+    setEnviandoWhatsApp(true);
+
+    try {
+      const blob = await generarImagenQR();
+
+      // 1) Intento principal: copiar la imagen al portapapeles.
+      //    Así, al abrir el chat, solo hay que pegarla (Ctrl+V / Cmd+V) y enviar.
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([
+          new ClipboardItem({ "image/png": blob })
+        ]);
+
+        window.open(`https://wa.me/${numero}`, "_blank");
+        alert(
+          "Imagen del QR copiada.\n\nEn el chat que se abrió, presiona Ctrl+V (o Cmd+V) dentro del cuadro de mensaje y da Enviar."
+        );
+      } else {
+        throw new Error("clipboard-no-soportado");
+      }
+    } catch (error) {
+      console.error("No se pudo copiar la imagen automáticamente:", error);
+
+      // 2) Respaldo: si el navegador no permite copiar imágenes al portapapeles,
+      //    se descarga el PNG y se abre el chat para adjuntarlo manualmente.
+      try {
+        const blob = await generarImagenQR();
+        const enlaceDescarga = document.createElement("a");
+        enlaceDescarga.href = URL.createObjectURL(blob);
+        enlaceDescarga.download = "FluxPay-QR.png";
+        document.body.appendChild(enlaceDescarga);
+        enlaceDescarga.click();
+        document.body.removeChild(enlaceDescarga);
+      } catch (e) {
+        console.error(e);
+      }
+
+      window.open(`https://wa.me/${numero}`, "_blank");
+      alert(
+        "Se descargó la imagen del QR a tu dispositivo.\n\nAdjúntala manualmente (📎) en el chat que se abrió."
+      );
+    } finally {
+      setEnviandoWhatsApp(false);
+    }
+  };
+
   return (
     <div style={styles.terminalBg}>
       <div style={styles.mainLayout}>
@@ -282,14 +320,34 @@ useEffect(() => {
 </div>
 
 {!cargandoQr && linkDePagoCliente && (
-<button
-  type="button"
-  onClick={compartirQR}
-  style={styles.btnWhatsapp}
->
-  <FaWhatsapp size={20} />
-  ENVIAR QR POR WHATSAPP
-</button>
+  <>
+    <button
+      type="button"
+      onClick={compartirQR}
+      style={styles.btnWhatsapp}
+    >
+      <FaWhatsapp size={20} />
+      ENVIAR QR POR WHATSAPP
+    </button>
+
+    <input
+      type="tel"
+      placeholder="Número de WhatsApp"
+      value={numeroWhatsApp}
+      onChange={(e) => setNumeroWhatsApp(e.target.value)}
+      style={styles.whatsappInput}
+    />
+
+    <button
+      type="button"
+      onClick={enviarWhatsAppNumero}
+      disabled={enviandoWhatsApp}
+      style={styles.btnWhatsappNumero}
+    >
+      <FaWhatsapp size={20} />
+      {enviandoWhatsApp ? "PREPARANDO IMAGEN..." : "ENVIAR IMAGEN A ESTE NÚMERO"}
+    </button>
+  </>
 )}
                   </div>
                 )}
@@ -323,7 +381,32 @@ const styles = { terminalBg: { backgroundColor: '#f4f7f9', height: '100vh', font
   fontWeight: 'bold',
   cursor: 'pointer',
   marginTop: '15px'
-} , methodGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }, methodCard: { padding: '25px', border: '1px solid #e2e8f0', borderRadius: '20px', cursor: 'pointer', textAlign: 'center', color: '#0e2a5a', fontWeight: 'bold' } 
+} ,whatsappInput: {
+  width: '100%',
+  padding: '14px',
+  marginTop: '10px',
+  border: '1px solid #e2e8f0',
+  borderRadius: '15px',
+  fontSize: '16px',
+  boxSizing: 'border-box',
+  outline: 'none'
+},
+
+btnWhatsappNumero: {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '10px',
+  width: '100%',
+  background: '#0e2a5a',
+  color: 'white',
+  border: 'none',
+  padding: '14px',
+  borderRadius: '15px',
+  fontWeight: 'bold',
+  cursor: 'pointer',
+  marginTop: '10px'
+}, methodGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }, methodCard: { padding: '25px', border: '1px solid #e2e8f0', borderRadius: '20px', cursor: 'pointer', textAlign: 'center', color: '#0e2a5a', fontWeight: 'bold' } 
 
 };
 
