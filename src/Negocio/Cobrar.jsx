@@ -30,10 +30,10 @@ const productos = [
   { id: 7, nombre: "Audifonos Sony Bluetooth 2024", precio: 1074.00, code: "750107" },
 ];
 
-  const subtotal = selectedProducts.reduce((acc, p) => acc + (p.precio * p.cant), 0);
-  const gananciaFlux = subtotal > 0 ? (subtotal * 0.02) : 0;
+const subtotal = selectedProducts.reduce((acc, p) => acc + (p.precio * p.cant), 0);
+const gananciaFlux = subtotal > 0 ? (subtotal * 0.02) : 0;
 
-const total = (subtotal + gananciaFlux + 3.00) / (1 - 0.036);
+const total = Number((subtotal + gananciaFlux + 3.00 + (subtotal * 0.036)).toFixed(2));
 
   const montoNumerico = parseFloat(efectivoRecibido) || 0;
   const cambio = montoNumerico > 0 ? montoNumerico - total : 0;
