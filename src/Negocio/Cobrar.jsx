@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
-import { FaQrcode, FaCreditCard, FaTimes, FaReceipt, FaHourglassHalf, FaCheckCircle, FaTrash, FaMoneyBillWave, FaBarcode, FaUniversity, FaPrint } from 'react-icons/fa';
-import { QRCodeSVG } from 'qrcode.react';
+import { FaQrcode, FaCreditCard, FaTimes, FaReceipt, FaHourglassHalf, FaCheckCircle, FaTrash, FaMoneyBillWave, FaBarcode, FaUniversity, FaPrint, FaWhatsapp } from 'react-icons/fa';import { QRCodeSVG } from 'qrcode.react';
 
 const FluxPaySystem = () => {
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -72,6 +71,9 @@ productos: selectedProducts.map(p => ({
 
         const pedidoId = respuesta.data.pedido_id;
 
+        setIdPedido(pedidoId);
+
+
 const urlPago = `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=${pedidoId}`;
         console.log("URL DEL QR:", urlPago);
 
@@ -109,20 +111,39 @@ const urlPago = `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=
 };
 
   // --- REVISAR SI EL CLIENTE YA PAGÓ DESDE EL CELULAR ---
-  useEffect(() => {
-    let verificadorBaseDatos;
-    if (showModal && metodo === 'qr') {
-      // Short Polling: Cada 3 segundos va a tu Laravel a revisar si el status del movimiento cambió a 1
-      verificadorBaseDatos = setInterval(async () => {
-        try {
-          // const res = await fetch(`http://localhost:8000/api/verificar-pago/${idTicketCreado}`);
-          // const data = await res.json();
-          // if(data.pagado) { finalizarVenta(); clearInterval(verificadorBaseDatos); }
-        } catch (e) { console.log(e); }
-      }, 3000);
-    }
-    return () => clearInterval(verificadorBaseDatos);
-  }, [showModal, metodo]);
+useEffect(() => {
+  let verificadorBaseDatos;
+
+  if (showModal && metodo === 'qr' && idPedido) {
+    verificadorBaseDatos = setInterval(async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/pedido/${idPedido}`
+        );
+
+        const data = await res.json();
+
+        console.log("Estado del pedido:", data.pedido?.status);
+
+        if (data.pedido?.status === 'pagado') {
+          clearInterval(verificadorBaseDatos);
+
+          setShowModal(false);
+          setMetodo(null);
+          setLinkDePagoCliente(null);
+          setIdPedido(null);
+
+          finalizarVenta();
+        }
+
+      } catch (e) {
+        console.log("Error verificando pago:", e);
+      }
+    }, 3000);
+  }
+
+  return () => clearInterval(verificadorBaseDatos);
+}, [showModal, metodo, idPedido]);
 
   // Resto de tus métodos nativos (Barcode, add, remove, ticket)...
   const handleBarcodeSearch = (e) => { e.preventDefault(); const p = productos.find(x => x.code === barcodeInput); if (p) { addProduct(p); setBarcodeInput(""); } };
@@ -130,7 +151,61 @@ const urlPago = `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=
   const removeProduct = (id) => setSelectedProducts(prev => prev.filter(p => p.id !== id));
   const finalizarVenta = () => { setVentaFinalizada({ productos: [...selectedProducts], total, subtotal, comision: total - subtotal, metodo, fecha: new Date().toLocaleString() }); setShowModal(false); };
   const resetTodo = () => { setVentaFinalizada(null); setSelectedProducts([]); setMetodo(null); setEfectivoRecibido(""); setLinkDePagoCliente(""); };
+  const compartirQR = async () => {
+  const qr = document.getElementById("fluxpay-qr");
 
+  if (!qr) {
+    alert("No se encontró el código QR");
+    return;
+  }
+
+  const svgData = new XMLSerializer().serializeToString(qr);
+  const svgBlob = new Blob([svgData], {
+    type: "image/svg+xml;charset=utf-8"
+  });
+
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+
+  img.onload = async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 500;
+    canvas.height = 500;
+
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, 500, 500);
+
+    ctx.drawImage(img, 0, 0, 500, 500);
+
+    URL.revokeObjectURL(url);
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        alert("No se pudo generar la imagen");
+        return;
+      }
+
+      const archivo = new File(
+        [blob],
+        "FluxPay-QR.png",
+        { type: "image/png" }
+      );
+
+      if (navigator.share && navigator.canShare?.({ files: [archivo] })) {
+        await navigator.share({
+          title: "Pago FluxPay",
+          text: "Escanea este código QR para realizar tu pago.",
+          files: [archivo]
+        });
+      } else {
+        alert("Este dispositivo o navegador no permite compartir imágenes directamente.");
+      }
+    }, "image/png");
+  };
+
+  img.src = url;
+};
   return (
     <div style={styles.terminalBg}>
       <div style={styles.mainLayout}>
@@ -192,9 +267,30 @@ const urlPago = `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=
                 {metodo === 'qr' && (
                   <div style={styles.centeredColumn}>
                     <div style={styles.statusBadge}><FaHourglassHalf /> ESPERANDO ESCANEO DEL CLIENTE...</div>
-                    <div style={styles.qrBox}>
-                      {cargandoQr ? <p>Generando link seguro...</p> : <QRCodeSVG value={linkDePagoCliente} size={180} level="M" fgColor="#0e2a5a" />}
-                    </div>
+<div style={styles.qrBox}> 
+  {cargandoQr ? (
+    <p>Generando link seguro...</p>
+  ) : (
+    <QRCodeSVG
+      id="fluxpay-qr"
+      value={linkDePagoCliente}
+      size={180}
+      level="M"
+      fgColor="#0e2a5a"
+    />
+  )} 
+</div>
+
+{!cargandoQr && linkDePagoCliente && (
+<button
+  type="button"
+  onClick={compartirQR}
+  style={styles.btnWhatsapp}
+>
+  <FaWhatsapp size={20} />
+  ENVIAR QR POR WHATSAPP
+</button>
+)}
                   </div>
                 )}
 
@@ -213,6 +309,22 @@ const urlPago = `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=
 };
 
 // Estilos base (Mantenidos de tu archivo para no romper diseño)
-const styles = { terminalBg: { backgroundColor: '#f4f7f9', height: '100vh', fontFamily: "sans-serif" }, mainLayout: { display: 'flex', height: '100%' }, logo: { color: '#0e2a5a', fontWeight: '900', fontSize: '28px' }, header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' }, badge: { background: '#0e2a5a', color: 'white', padding: '6px 16px', borderRadius: '50px', fontSize: '11px' }, barcodeContainer: { display: 'flex', alignItems: 'center', background: 'white', padding: '12px 20px', borderRadius: '15px', marginBottom: '30px' }, barcodeInput: { border: 'none', marginLeft: '15px', width: '100%', outline: 'none' }, grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }, cardProduct: { background: 'white', padding: '25px', borderRadius: '20px', cursor: 'pointer', textAlign: 'center' }, productTitle: { fontSize: '16px' }, priceTag: { color: '#0e2a5a', fontWeight: '800', fontSize: '24px' }, sidebar: { width: '400px', background: 'white', display: 'flex', flexDirection: 'column' }, ticketHeader: { padding: '25px', fontWeight: 'bold' }, ticketItem: { display: 'flex', justifyContent: 'space-between', padding: '15px 20px' }, deleteBtn: { background: '#f8fafc', border: 'none', cursor: 'pointer' }, sidebarFooter: { padding: '25px' }, totalRow: { display: 'flex', justifyContent: 'space-between', fontSize: '28px', color: '#0e2a5a', fontWeight: '900' }, btnCobrar: { width: '100%', padding: '18px', background: '#0e2a5a', color: 'white', border: 'none', borderRadius: '15px', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' }, overlay: { position: 'fixed', inset: 0, background: 'rgba(14, 42, 90, 0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }, modal: { background: 'white', borderRadius: '35px', width: '440px', position: 'relative', padding: '20px' }, closeBtn: { position: 'absolute', top: '20px', right: '20px', border: 'none', cursor: 'pointer' }, modalContent: { display: 'flex', flexDirection: 'column', alignItems: 'center' }, centeredColumn: { display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }, modalBigTotal: { fontSize: '48px', fontWeight: '900', color: '#0e2a5a' }, statusBadge: { background: '#fffbeb', color: '#b45309', padding: '10px 20px', borderRadius: '50px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px' }, qrBox: { padding: '20px', background: 'white', borderRadius: '25px', border: '1px solid #f1f5f9' }, cashInput: { width: '100%', padding: '15px', fontSize: '24px', textAlign: 'center', marginBottom: '15px' }, btnFinalize: { width: '100%', background: '#0e2a5a', color: 'white', border: 'none', padding: '18px', borderRadius: '15px', fontWeight: 'bold', cursor: 'pointer', marginTop: '15px' }, methodGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }, methodCard: { padding: '25px', border: '1px solid #e2e8f0', borderRadius: '20px', cursor: 'pointer', textAlign: 'center', color: '#0e2a5a', fontWeight: 'bold' } };
+const styles = { terminalBg: { backgroundColor: '#f4f7f9', height: '100vh', fontFamily: "sans-serif" }, mainLayout: { display: 'flex', height: '100%' }, logo: { color: '#0e2a5a', fontWeight: '900', fontSize: '28px' }, header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' }, badge: { background: '#0e2a5a', color: 'white', padding: '6px 16px', borderRadius: '50px', fontSize: '11px' }, barcodeContainer: { display: 'flex', alignItems: 'center', background: 'white', padding: '12px 20px', borderRadius: '15px', marginBottom: '30px' }, barcodeInput: { border: 'none', marginLeft: '15px', width: '100%', outline: 'none' }, grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }, cardProduct: { background: 'white', padding: '25px', borderRadius: '20px', cursor: 'pointer', textAlign: 'center' }, productTitle: { fontSize: '16px' }, priceTag: { color: '#0e2a5a', fontWeight: '800', fontSize: '24px' }, sidebar: { width: '400px', background: 'white', display: 'flex', flexDirection: 'column' }, ticketHeader: { padding: '25px', fontWeight: 'bold' }, ticketItem: { display: 'flex', justifyContent: 'space-between', padding: '15px 20px' }, deleteBtn: { background: '#f8fafc', border: 'none', cursor: 'pointer' }, sidebarFooter: { padding: '25px' }, totalRow: { display: 'flex', justifyContent: 'space-between', fontSize: '28px', color: '#0e2a5a', fontWeight: '900' }, btnCobrar: { width: '100%', padding: '18px', background: '#0e2a5a', color: 'white', border: 'none', borderRadius: '15px', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' }, overlay: { position: 'fixed', inset: 0, background: 'rgba(14, 42, 90, 0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }, modal: { background: 'white', borderRadius: '35px', width: '440px', position: 'relative', padding: '20px' }, closeBtn: { position: 'absolute', top: '20px', right: '20px', border: 'none', cursor: 'pointer' }, modalContent: { display: 'flex', flexDirection: 'column', alignItems: 'center' }, centeredColumn: { display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }, modalBigTotal: { fontSize: '48px', fontWeight: '900', color: '#0e2a5a' }, statusBadge: { background: '#fffbeb', color: '#b45309', padding: '10px 20px', borderRadius: '50px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px' }, qrBox: { padding: '20px', background: 'white', borderRadius: '25px', border: '1px solid #f1f5f9' }, cashInput: { width: '100%', padding: '15px', fontSize: '24px', textAlign: 'center', marginBottom: '15px' }, btnFinalize: { width: '100%', background: '#0e2a5a', color: 'white', border: 'none', padding: '18px', borderRadius: '15px', fontWeight: 'bold', cursor: 'pointer', marginTop: '15px' },btnWhatsapp: {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '10px',
+  width: '100%',
+  background: '#25D366',
+  color: 'white',
+  border: 'none',
+  padding: '14px',
+  borderRadius: '15px',
+  fontWeight: 'bold',
+  cursor: 'pointer',
+  marginTop: '15px'
+} , methodGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }, methodCard: { padding: '25px', border: '1px solid #e2e8f0', borderRadius: '20px', cursor: 'pointer', textAlign: 'center', color: '#0e2a5a', fontWeight: 'bold' } 
+
+};
 
 export default FluxPaySystem;
