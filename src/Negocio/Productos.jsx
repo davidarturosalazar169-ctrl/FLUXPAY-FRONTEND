@@ -56,7 +56,6 @@ export default function ProductosNegocio() {
       idmarca: parseInt(formData.get("idmarca")),
       tipoProducto: formData.get("tipoProducto"),
       precio: parseFloat(formData.get("precio")),
-      idnegocio: 1,
       status: 1
     };
 

@@ -10,6 +10,7 @@ import "./LayoutNegocio.css";
 
 export default function LayoutNegocio() {
     const navigate = useNavigate(); // Hook para redireccionar
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
 
     const handleLogout = () => {
         if (window.confirm("¿Estás seguro de que quieres cerrar sesión?")) {
@@ -132,7 +133,7 @@ export default function LayoutNegocio() {
                     <div className="negocio-header-left">
                         <div>
                             <h1 className="negocio-title">
-                                Panel de Negocio
+                                {user.negocio?.nombre || "Panel de Negocio"}
                             </h1>
                             <p className="negocio-subtitle">
                                 Administra tus ventas y productos fácilmente
@@ -145,10 +146,10 @@ export default function LayoutNegocio() {
                         <div className="negocio-user-box">
                             <div className="negocio-user-info">
                                 <span className="negocio-user-name">
-                                    José Aguilar
+                                    {user.name || "Usuario"}
                                 </span>
                                 <span className="negocio-user-email">
-                                    joseagui@gmail.com
+                                    {user.email || ""}
                                 </span>
                             </div>
 
