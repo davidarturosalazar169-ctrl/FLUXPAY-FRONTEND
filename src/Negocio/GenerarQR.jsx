@@ -345,7 +345,7 @@ const GenerarQR = () => {
                   <FaWhatsapp size={24} />
                 </div>
                 <div style={{ textAlign: 'left' }}>
-                  <span style={{ display: 'block', fontSize: '14px', lineHeight: '1.2', fontWeight: '800', letterSpacing: '0.3px' }}>COBRAR POR WHATSAPP AHORA</span>
+                  <span style={{ display: 'block', fontSize: '14px', lineHeight: '1.2', fontWeight: '800', letterSpacing: '0.3px' }}>MANDAR POR WHATSAPP AHORA</span>
                   <span style={{ display: 'block', fontSize: '11px', fontWeight: '500', opacity: '0.9' }}>Envía el QR oficial + enlace directo al chat</span>
                 </div>
               </div>

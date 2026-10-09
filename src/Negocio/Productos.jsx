@@ -27,18 +27,33 @@ export default function ProductosNegocio() {
     }
   });
 
-  const fetchData = async () => {
-    try {
-      const [resProd, resMarcas] = await Promise.all([
-        axios.get(API_URL, getAuthHeader()),
-        axios.get(MARCAS_URL, getAuthHeader())
-      ]);
-      setProductos(resProd.data || []);
-      setMarcas(resMarcas.data || []);
-    } catch (err) {
-      console.error("Error en FluxPay:", err);
-    }
-  };
+const fetchData = async () => {
+  try {
+    console.log("=================================");
+    console.log("PRODUCTOS: Cargando productos...");
+    console.log("URL:", API_URL);
+    console.log("=================================");
+
+    const [resProd, resMarcas] = await Promise.all([
+      axios.get(API_URL, getAuthHeader()),
+      axios.get(MARCAS_URL, getAuthHeader())
+    ]);
+
+    console.log("PRODUCTOS RECIBIDOS:", resProd.data);
+    console.log("TOTAL DE PRODUCTOS:", resProd.data?.length || 0);
+
+    console.log("MARCAS RECIBIDAS:", resMarcas.data);
+    console.log("TOTAL DE MARCAS:", resMarcas.data?.length || 0);
+
+    setProductos(resProd.data || []);
+    setMarcas(resMarcas.data || []);
+
+  } catch (err) {
+    console.error("ERROR AL CARGAR PRODUCTOS:", err);
+    console.error("RESPUESTA DEL SERVIDOR:", err.response?.data);
+    console.error("STATUS:", err.response?.status);
+  }
+};
 
   useEffect(() => { fetchData(); }, []);
 
@@ -48,31 +63,47 @@ export default function ProductosNegocio() {
   const registrosPagina = productos.slice(primerIndice, ultimoIndice);
   const totalPaginas = Math.ceil(productos.length / registrosPorPagina);
 
-  const handleGuardar = async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const datos = {
-      nombre: formData.get("nombre"),
-      idmarca: parseInt(formData.get("idmarca")),
-      tipoProducto: formData.get("tipoProducto"),
-      precio: parseFloat(formData.get("precio")),
-      idnegocio: 1,
-      status: 1
-    };
+const handleGuardar = async (e) => {
+  e.preventDefault();
 
-    try {
-      if (editandoId) {
-        await axios.put(`${API_URL}/${editandoId}`, datos, getAuthHeader());
-      } else {
-        await axios.post(API_URL, datos, getAuthHeader());
-      }
-      fetchData();
-      cerrarModal();
-    } catch (err) {
-      alert("Error al procesar la solicitud");
-    }
+  const formData = new FormData(e.target);
+
+  const datos = {
+    nombre: formData.get("nombre"),
+    idmarca: parseInt(formData.get("idmarca")),
+    tipoProducto: formData.get("tipoProducto"),
+    precio: parseFloat(formData.get("precio"))
   };
 
+  try {
+    if (editandoId) {
+      await axios.put(
+        `${API_URL}/${editandoId}`,
+        datos,
+        getAuthHeader()
+      );
+    } else {
+      await axios.post(
+        API_URL,
+        datos,
+        getAuthHeader()
+      );
+    }
+
+    // Esperar a que los productos actualizados
+    // vuelvan del backend
+    await fetchData();
+
+    // Cerrar el modal después de actualizar
+    cerrarModal();
+
+  } catch (err) {
+    console.error("ERROR AL GUARDAR PRODUCTO:", err);
+    console.error("RESPUESTA DEL SERVIDOR:", err.response?.data);
+
+    alert("Error al procesar la solicitud");
+  }
+};
   const ejecutarEliminacion = async () => {
     try {
       await axios.delete(`${API_URL}/${productoAEliminar.id}`, getAuthHeader());
@@ -111,28 +142,75 @@ export default function ProductosNegocio() {
               <th style={{ ...thStyle, textAlign: "right" }}>ACCIONES</th>
             </tr>
           </thead>
-          <tbody>
-            {registrosPagina.length > 0 ? (
-              registrosPagina.map((item) => (
-                <tr key={item.id} style={trStyle}>
-                  <td style={tdStyle}>
-                    <div style={brandText}>
-                      {marcas.find(m => String(m.id) === String(item.idmarca))?.nombre || "Genérico"}
-                    </div>
-                    <div style={productText}>{item.nombre}</div>
-                  </td>
-                  <td style={tdStyle}>{item.tipoProducto}</td>
-                  <td style={priceText}>${item.precio.toLocaleString()}</td>
-                  <td style={{ ...tdStyle, textAlign: "right" }}>
-                    <button onClick={() => { setEditandoId(item.id); setShowModal(true); }} style={actionBtn}><FaEdit /></button>
-                    <button onClick={() => { setProductoAEliminar(item); setShowDeleteModal(true); }} style={deleteBtn}><FaTrash /></button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr><td colSpan="4" style={{ textAlign: "center", padding: "40px", color: "#64748b" }}>No hay productos registrados.</td></tr>
-            )}
-          </tbody>
+<tbody>
+  {registrosPagina.length > 0 ? (
+    registrosPagina.map((item) => {
+      const marcaProducto = marcas.find(
+        m => String(m.id) === String(item.idmarca)
+      );
+
+      return (
+        <tr key={item.id} style={trStyle}>
+          <td style={tdStyle}>
+            <div style={brandText}>
+              {marcaProducto?.nombre || "Genérico"}
+            </div>
+
+            <div style={productText}>
+              {item.nombre}
+            </div>
+          </td>
+
+          <td style={tdStyle}>
+            {item.tipoProducto}
+          </td>
+
+          <td style={priceText}>
+            ${Number(item.precio).toLocaleString("es-MX", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })}
+          </td>
+
+          <td style={{ ...tdStyle, textAlign: "right" }}>
+            <button
+              onClick={() => {
+                setEditandoId(item.id);
+                setShowModal(true);
+              }}
+              style={actionBtn}
+            >
+              <FaEdit />
+            </button>
+
+            <button
+              onClick={() => {
+                setProductoAEliminar(item);
+                setShowDeleteModal(true);
+              }}
+              style={deleteBtn}
+            >
+              <FaTrash />
+            </button>
+          </td>
+        </tr>
+      );
+    })
+  ) : (
+    <tr>
+      <td
+        colSpan="4"
+        style={{
+          textAlign: "center",
+          padding: "40px",
+          color: "#64748b"
+        }}
+      >
+        No hay productos registrados.
+      </td>
+    </tr>
+  )}
+</tbody>
         </table>
 
         {/* PAGINACIÓN ESTILO HISTORIAL */}

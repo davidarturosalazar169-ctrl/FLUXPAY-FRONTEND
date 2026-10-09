@@ -20,15 +20,14 @@ const FluxPaySystem = () => {
   const [idPedido, setIdPedido] = useState(null);
   const [numeroWhatsApp, setNumeroWhatsApp] = useState("");
   const [enviandoWhatsApp, setEnviandoWhatsApp] = useState(false);
-const productos = [
-  { id: 1, nombre: "Silla gamer ergonomica Ultra", precio: 3017.00, code: "750101" },
-  { id: 2, nombre: "Agenda 2026 Pro", precio: 2033.00, code: "750102" },
-  { id: 3, nombre: "MacBook Air M1 Ultra", precio: 1276.00, code: "750103" },
-  { id: 4, nombre: "Cafetera Oster Pro", precio: 3458.00, code: "750104" },
-  { id: 5, nombre: "Maleta de viaje Max", precio: 1629.00, code: "750105" },
-  { id: 6, nombre: "Mouse Logitech Max", precio: 4146.00, code: "750106" },
-  { id: 7, nombre: "Audifonos Sony Bluetooth 2024", precio: 1074.00, code: "750107" },
-];
+const [productos, setProductos] = useState([]);
+
+const getAuthHeader = () => ({
+  headers: { 
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+    "Content-Type": "application/json"
+  }
+});
 
 const subtotal = selectedProducts.reduce((acc, p) => acc + (p.precio * p.cant), 0);
 const gananciaFlux = subtotal > 0 ? (subtotal * 0.02) : 0;
@@ -104,6 +103,36 @@ const urlPago = `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=
 
         setCargandoQr(false);
 
+    }
+};
+
+useEffect(() => {
+    cargarProductos();
+}, []);
+
+const cargarProductos = async () => {
+    try {
+        const respuesta = await axios.get(
+            "http://localhost:8000/api/productos",
+            getAuthHeader()
+        );
+
+        console.log("PRODUCTOS DEL BACKEND:", respuesta.data);
+
+        const productosConvertidos = respuesta.data.map(p => ({
+            ...p,
+            precio: Number(p.precio)
+        }));
+
+        setProductos(productosConvertidos);
+
+    } catch (error) {
+        console.error(
+            "ERROR CARGANDO PRODUCTOS:",
+            error.response?.data || error
+        );
+
+        alert("No se pudieron cargar los productos");
     }
 };
 
