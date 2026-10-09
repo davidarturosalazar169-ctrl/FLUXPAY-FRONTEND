@@ -17,47 +17,45 @@ export default function Login() {
     console.log("📡 Endpoint login:", `${API_URL}/login`);
 
     try {
+<<<<<<< HEAD
       const res = await fetch(`${API_URL}/login`, {        
+=======
+      const res = await fetch(`${API_URL}/login`, {
+>>>>>>> equipo-produccion
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email,
-          password
-        })
+          password,
+        }),
       });
 
       const data = await res.json();
-            
 
-      console.log("Respuesta login:", data); 
-      
+      console.log("Respuesta login:", data);
 
       if (res.ok) {
+        localStorage.setItem("token", data.token);
 
-          // Guardar token
-localStorage.setItem("token", data.token);
+        localStorage.setItem(
+          "user",
+          JSON.stringify(data.user)
+        );
 
-// Guardar toda la información del usuario
-localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem(
+          "permisos",
+          JSON.stringify(data.user.permisos || [])
+        );
 
-// Guardar permisos
-localStorage.setItem(
-  "permisos",
-  JSON.stringify(data.user.permisos)
-);
-        
-   
-       
         switch (data.user.idrol) {
-
           case 1:
             navigate("/admin/dashboard");
             break;
 
           case 8:
-            navigate("/negocio"); // 🔥 IMPORTANTE
+            navigate("/negocio");
             break;
 
           case 9:
@@ -66,12 +64,11 @@ localStorage.setItem(
 
           default:
             navigate("/");
+            break;
         }
-
       } else {
         alert(data.message || "Error al iniciar sesión");
       }
-
     } catch (error) {
       console.error("Error:", error);
       alert("Error al conectar con el servidor");
@@ -80,36 +77,35 @@ localStorage.setItem(
 
   return (
     <div className="login-container">
-
       <div className="login-overlay">
 
-        {/* IZQUIERDA */}
         <div className="login-left">
           <div className="left-content">
             <h1>
               Bienvenido a <span>ImpulsaPay</span>
             </h1>
+
             <p>
               Gestiona tus negocios, analiza ingresos y controla
               tus transacciones desde un solo lugar.
             </p>
+
             <button
               className="btn-register"
               onClick={() => navigate("/register")}
             >
-              Registrate
+              Regístrate
             </button>
           </div>
         </div>
 
-        {/* DERECHA */}
         <div className="login-right">
           <div className="login-card">
 
             <div className="logo-box">
               <img
                 src="/impulsaPay.jpg"
-                alt="impulsaPay Logo"
+                alt="ImpulsaPay Logo"
                 className="login-logo"
               />
             </div>
@@ -134,11 +130,17 @@ localStorage.setItem(
                 required
               />
 
-              <button type="submit" className="btn-login">
+              <button
+                type="submit"
+                className="btn-login"
+              >
                 Iniciar sesión
               </button>
 
-              <p className="forgot">Olvidé mi contraseña</p>
+              <p className="forgot">
+                Olvidé mi contraseña
+              </p>
+
             </form>
 
           </div>

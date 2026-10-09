@@ -9,24 +9,34 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
-  const [rol, setRol] = useState("cliente"); // 🔥 por defecto
+  const [rol, setRol] = useState("cliente");
+  const [negocio, setNegocio] = useState({
+    nombre: "",
+    telefono: "",
+    descripcion: "",
+    rfc: "",
+    codigo_postal: ""
+  });
 
   const handleRegister = async (e) => {
     e.preventDefault();
-  const API_URL = import.meta.env.VITE_API_URL;
+    const API_URL = import.meta.env.VITE_API_URL;
 
     try {
-  const res = await fetch(`${API_URL}/register`, {
+      const payload = { name, email, password, rol };
+      if (rol === "negocio") {
+        payload.negocio = {
+          ...negocio,
+          nombre: negocio.nombre.trim()
+        };
+      }
+
+      const res = await fetch(`${API_URL}/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          rol
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
@@ -35,13 +45,22 @@ export default function Register() {
         Swal.fire({
           icon: "success",
           title: "Cuenta creada",
-          text: "Tu cuenta fue registrada correctamente.",
+          text: rol === "negocio"
+            ? "Tu cuenta y tu negocio fueron registrados correctamente."
+            : "Tu cuenta fue registrada correctamente.",
           confirmButtonColor: "#0d2b5c"
         });
 
         navigate("/");
       } else {
-        Swal.fire("Error", data.message || "No se pudo registrar", "error");
+        const validationError = data.errors
+          ? Object.values(data.errors).flat()[0]
+          : null;
+        Swal.fire(
+          "Error",
+          validationError || data.message || "No se pudo registrar",
+          "error"
+        );
       }
 
     } catch (error) {
@@ -98,10 +117,59 @@ export default function Register() {
           />
 
           {/* 🔥 SELECT DE ROL */}
-          <select onChange={(e) => setRol(e.target.value)}>
+          <select
+            value={rol}
+            onChange={(e) => setRol(e.target.value)}
+          >
             <option value="cliente">Cliente</option>
             <option value="negocio">Negocio</option>
           </select>
+
+          {rol === "negocio" && (
+            <>
+              <input
+                type="text"
+                placeholder="Nombre del negocio"
+                value={negocio.nombre}
+                onChange={(e) => setNegocio({ ...negocio, nombre: e.target.value })}
+                maxLength={150}
+                required
+              />
+
+              <input
+                type="tel"
+                placeholder="Teléfono del negocio (opcional)"
+                value={negocio.telefono}
+                onChange={(e) => setNegocio({ ...negocio, telefono: e.target.value })}
+                maxLength={25}
+              />
+
+              <textarea
+                placeholder="Descripción del negocio (opcional)"
+                value={negocio.descripcion}
+                onChange={(e) => setNegocio({ ...negocio, descripcion: e.target.value })}
+                maxLength={1000}
+                rows={3}
+              />
+
+              <input
+                type="text"
+                placeholder="RFC (opcional)"
+                value={negocio.rfc}
+                onChange={(e) => setNegocio({ ...negocio, rfc: e.target.value.toUpperCase() })}
+                maxLength={20}
+              />
+
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Código postal (opcional)"
+                value={negocio.codigo_postal}
+                onChange={(e) => setNegocio({ ...negocio, codigo_postal: e.target.value })}
+                maxLength={10}
+              />
+            </>
+          )}
 
         </div>
 

@@ -14,7 +14,8 @@ html, body, #root {
   display: flex;
   min-height: 100vh;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* FONDO OSCURECIDO PROFESIONAL */
@@ -79,6 +80,8 @@ html, body, #root {
   top: 50%;
   transform: translateY(-50%);
   z-index: 2;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .register-card h2 {
@@ -94,16 +97,28 @@ html, body, #root {
   gap: 12px;
 }
 
-.register-grid input {
+.register-grid input,
+.register-grid select,
+.register-grid textarea {
   padding: 12px;
   border-radius: 8px;
   border: none;
   font-size: 14px;
   background: #e5e7eb;
+  width: 100%;
 }
 
-.register-grid input:focus {
+.register-grid textarea {
+  resize: vertical;
+  min-height: 88px;
+  font-family: inherit;
+}
+
+.register-grid input:focus,
+.register-grid select:focus,
+.register-grid textarea:focus {
   outline: none;
+  box-shadow: 0 0 0 2px #60a5fa;
 }
 
 /* BOTONES */
@@ -158,5 +173,6 @@ html, body, #root {
     transform: none;
     margin: 40px auto;
     width: 90%;
+    max-height: none;
   }
 }
