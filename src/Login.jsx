@@ -17,11 +17,7 @@ export default function Login() {
     console.log("📡 Endpoint login:", `${API_URL}/login`);
 
     try {
-<<<<<<< HEAD
       const res = await fetch(`${API_URL}/login`, {        
-=======
-      const res = await fetch(`${API_URL}/login`, {
->>>>>>> equipo-produccion
         method: "POST",
         headers: {
           "Content-Type": "application/json",
