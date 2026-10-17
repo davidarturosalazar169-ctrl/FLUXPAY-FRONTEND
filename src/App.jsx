@@ -40,6 +40,11 @@ import StripeProvider from "./stripe/StripeProvider";
 import Checkout from "./stripe/Checkout";
 import Renderprueba from "./Renderprueba";
 
+/* ================= Metabase ================= */
+import MetabaseGrafica from "./Metabase/MetabaseGrafica";
+
+
+
 function App() {
   return (
     <Routes>
@@ -194,11 +199,15 @@ function App() {
   }
 />
       {/* ================= QR STRIPE ================= */}
-
+<Route
+  path="/metabase"
+  element={<MetabaseGrafica />}
+/>
     </Routes>
 
   );
 }
+
 
 
 
