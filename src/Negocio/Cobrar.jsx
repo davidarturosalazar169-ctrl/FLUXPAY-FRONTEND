@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -36,6 +35,10 @@ const FluxPaySystem = () => {
   const [numeroWhatsApp, setNumeroWhatsApp] = useState("");
   const [enviandoWhatsApp, setEnviandoWhatsApp] = useState(false);
 
+  const [fichaOxxo, setFichaOxxo] = useState("");
+  const [referenciaOxxo, setReferenciaOxxo] = useState("");
+  const [cargandoOxxo, setCargandoOxxo] = useState(false);
+
   const [productos, setProductos] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [mostrarClientes, setMostrarClientes] = useState(false);
@@ -47,7 +50,24 @@ const FluxPaySystem = () => {
 
   const [puntosACanjear, setPuntosACanjear] = useState("100");
   const [descuentoPuntos, setDescuentoPuntos] = useState(0);
+
+  // Ahora identifica el método al que se le aplica comisión:
+  // false = ninguno, "qr" = QR, "oxxo" = OXXO.
   const [aplicarComisiones, setAplicarComisiones] = useState(false);
+
+  const [mostrarConfiguracionPuntos, setMostrarConfiguracionPuntos] =
+    useState(false);
+
+  const [configuracionPuntos, setConfiguracionPuntos] = useState({
+    puntos_para_canjear: 100,
+    puntos_por_compra: 10,
+    cantidad_de_pesos: 1,
+  });
+
+  const [cargandoConfiguracionPuntos, setCargandoConfiguracionPuntos] =
+    useState(false);
+  const [guardandoConfiguracionPuntos, setGuardandoConfiguracionPuntos] =
+    useState(false);
 
   const [clienteEditando, setClienteEditando] = useState(null);
   const [cargandoClientes, setCargandoClientes] = useState(false);
@@ -68,6 +88,127 @@ const FluxPaySystem = () => {
       confirmButtonColor: "#0e2a5a",
       confirmButtonText: "Aceptar",
     });
+  };
+
+  // Consultar configuración de puntos del negocio
+  const cargarConfiguracionPuntos = async () => {
+    setCargandoConfiguracionPuntos(true);
+
+    try {
+      const respuesta = await axios.get(
+        `${API_URL}/clientes-negocios/puntos/configuracion`,
+        getAuthHeader()
+      );
+
+      setConfiguracionPuntos({
+        puntos_por_compra: respuesta.data.puntos_por_compra ?? 10,
+        puntos_para_canjear: respuesta.data.puntos_para_canjear,
+        cantidad_de_pesos: respuesta.data.cantidad_de_pesos,
+      });
+
+      console.log("CONFIGURACIÓN DE PUNTOS:", respuesta.data);
+    } catch (error) {
+      if (error.response?.status === 404) {
+        setConfiguracionPuntos({
+          puntos_por_compra: 10,
+          puntos_para_canjear: 100,
+          cantidad_de_pesos: 1,
+        });
+      } else {
+        console.error(
+          "ERROR CONSULTANDO CONFIGURACIÓN:",
+          error.response?.data || error
+        );
+
+        mostrarAlerta(
+          "Error",
+          "No se pudo consultar la configuración de puntos.",
+          "error"
+        );
+      }
+    } finally {
+      setCargandoConfiguracionPuntos(false);
+    }
+  };
+
+  // Guardar configuración de puntos del negocio
+  const guardarConfiguracionPuntos = async () => {
+    const puntosPorCompra = Number(
+      configuracionPuntos.puntos_por_compra
+    );
+
+    const puntos = Number(configuracionPuntos.puntos_para_canjear);
+    const pesos = Number(configuracionPuntos.cantidad_de_pesos);
+
+    if (!Number.isInteger(puntosPorCompra) || puntosPorCompra < 1) {
+      mostrarAlerta(
+        "Puntos por compra inválidos",
+        "Los puntos por compra deben ser un número entero mayor que cero.",
+        "warning"
+      );
+      return;
+    }
+
+    if (!Number.isInteger(puntos) || puntos < 1) {
+      mostrarAlerta(
+        "Puntos inválidos",
+        "Los puntos para canjear deben ser un número entero mayor que cero.",
+        "warning"
+      );
+      return;
+    }
+
+    if (!Number.isFinite(pesos) || pesos <= 0) {
+      mostrarAlerta(
+        "Cantidad inválida",
+        "La equivalencia en pesos debe ser mayor que cero.",
+        "warning"
+      );
+      return;
+    }
+
+    setGuardandoConfiguracionPuntos(true);
+
+    try {
+      const respuesta = await axios.post(
+        `${API_URL}/clientes-negocios/puntos/configuracion`,
+        {
+          puntos_por_compra: puntosPorCompra,
+          puntos_para_canjear: puntos,
+          cantidad_de_pesos: pesos,
+        },
+        getAuthHeader()
+      );
+
+      setConfiguracionPuntos({
+        puntos_por_compra: puntosPorCompra,
+        puntos_para_canjear: puntos,
+        cantidad_de_pesos: pesos,
+      });
+
+      await mostrarAlerta(
+        "Configuración guardada",
+        respuesta.data.message ||
+          "La configuración de puntos se guardó correctamente.",
+        "success"
+      );
+
+      setMostrarConfiguracionPuntos(false);
+    } catch (error) {
+      console.error(
+        "ERROR GUARDANDO CONFIGURACIÓN:",
+        error.response?.data || error
+      );
+
+      mostrarAlerta(
+        "Error",
+        error.response?.data?.message ||
+          "No se pudo guardar la configuración.",
+        "error"
+      );
+    } finally {
+      setGuardandoConfiguracionPuntos(false);
+    }
   };
 
   const cargarClientes = async () => {
@@ -153,7 +294,10 @@ const FluxPaySystem = () => {
 
       mostrarAlerta(
         "Puntos acumulados",
-        "Se agregaron 100 puntos al cliente.",
+        `Se agregaron ${
+          Number(puntosActualizados) -
+          Number(clienteSeleccionado.puntos ?? 0)
+        } puntos al cliente.`,
         "success"
       );
     } catch (error) {
@@ -183,14 +327,19 @@ const FluxPaySystem = () => {
 
     const puntos = Number(puntosACanjear);
 
+    const puntosEquivalentes = Number(
+      configuracionPuntos.puntos_para_canjear
+    );
+
     if (
       !Number.isInteger(puntos) ||
-      puntos < 100 ||
-      puntos % 100 !== 0
+      puntosEquivalentes < 1 ||
+      puntos < puntosEquivalentes ||
+      puntos % puntosEquivalentes !== 0
     ) {
       mostrarAlerta(
         "Puntos inválidos",
-        "Los puntos deben ser múltiplos de 100.",
+        `Los puntos deben ser múltiplos de ${puntosEquivalentes}.`,
         "warning"
       );
       return;
@@ -220,9 +369,7 @@ const FluxPaySystem = () => {
       const puntosActualizados =
         respuesta.data.puntos_disponibles;
 
-      const descuento = Number(
-        respuesta.data.descuento_mxn
-      );
+      const descuento = Number(respuesta.data.descuento_mxn);
 
       setClienteSeleccionado((anterior) =>
         anterior
@@ -351,27 +498,35 @@ const FluxPaySystem = () => {
     subtotal - descuentoPuntos
   );
 
-  const gananciaFlux =
-    aplicarComisiones && subtotal > 0
-      ? subtotal * 0.02
+  // Comisión QR: 2% + 3.6% + $3 MXN.
+  const comisionQrPorcentaje =
+    aplicarComisiones === "qr" && subtotal > 0
+      ? subtotal * 0.02 + subtotal * 0.036
       : 0;
 
-  const comisionStripe =
-    aplicarComisiones && subtotal > 0
-      ? subtotal * 0.036
+  const comisionQrFija =
+    aplicarComisiones === "qr" && subtotal > 0
+      ? 3
       : 0;
 
-  const comisionFija =
-    aplicarComisiones && subtotal > 0
-      ? 3.0
+  // Comisión OXXO: 4% + $3 MXN.
+  const comisionOxxoPorcentaje =
+    aplicarComisiones === "oxxo" && subtotal > 0
+      ? subtotal * 0.04
+      : 0;
+
+  const comisionOxxoFija =
+    aplicarComisiones === "oxxo" && subtotal > 0
+      ? 3
       : 0;
 
   const total = Number(
     (
       totalAntesComisiones +
-      gananciaFlux +
-      comisionStripe +
-      comisionFija
+      comisionQrPorcentaje +
+      comisionQrFija +
+      comisionOxxoPorcentaje +
+      comisionOxxoFija
     ).toFixed(2)
   );
 
@@ -383,8 +538,6 @@ const FluxPaySystem = () => {
 
   // Se conserva la lógica original del QR.
   const handleSeleccionarMetodoQR = async () => {
-    console.log("TOTAL QUE SE ENVIA AL QR:", total);
-
     if (selectedProducts.length === 0) {
       mostrarAlerta(
         "Carrito vacío",
@@ -394,8 +547,21 @@ const FluxPaySystem = () => {
       return;
     }
 
+    // Calculamos el total QR antes de enviar la solicitud.
+    const totalQR = Number(
+      (
+        totalAntesComisiones +
+        subtotal * 0.02 +
+        subtotal * 0.036 +
+        3
+      ).toFixed(2)
+    );
+
+    setAplicarComisiones("qr");
     setCargandoQr(true);
     setMetodo("qr");
+
+    console.log("TOTAL QUE SE ENVIA AL QR:", totalQR);
 
     try {
       const respuesta = await axios.post(
@@ -409,7 +575,7 @@ const FluxPaySystem = () => {
             cantidad: p.cant,
             precio: p.precio,
           })),
-          total: total,
+          total: totalQR,
         }
       );
 
@@ -418,7 +584,7 @@ const FluxPaySystem = () => {
       const pedidoId = respuesta.data.pedido_id;
 
       const urlPago =
-        `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=${pedidoId}&total=${total}`;
+        `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=${pedidoId}&total=${totalQR}`;
 
       console.log("URL DEL QR:", urlPago);
 
@@ -434,7 +600,7 @@ const FluxPaySystem = () => {
       const pedido = {
         idpedido: pedidoTemporal,
         productos: selectedProducts,
-        total: total,
+        total: totalQR,
       };
 
       localStorage.setItem(
@@ -443,13 +609,90 @@ const FluxPaySystem = () => {
       );
 
       const urlPago =
-        `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=${pedidoTemporal}`;
+        `https://fluxpay-frontend-dun.vercel.app/qr-pagar-pedido?pedido=${pedidoTemporal}&total=${totalQR}`;
 
       console.log("URL DEL QR (LOCAL):", urlPago);
 
       setLinkDePagoCliente(urlPago);
     } finally {
       setCargandoQr(false);
+    }
+  };
+
+  const handlePagoOxxo = async () => {
+    if (selectedProducts.length === 0) {
+      mostrarAlerta(
+        "Carrito vacío",
+        "Agrega productos antes de generar la ficha OXXO.",
+        "warning"
+      );
+      return;
+    }
+
+    const resultado = await Swal.fire({
+      title: "Pago en OXXO",
+      text: "Escribe el correo del cliente para generar la ficha de prueba.",
+      input: "email",
+      inputPlaceholder: "cliente@correo.com",
+      inputAttributes: {
+        autocomplete: "email",
+      },
+      showCancelButton: true,
+      confirmButtonText: "Generar ficha",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#0e2a5a",
+      inputValidator: (valor) => {
+        if (!valor) {
+          return "Escribe el correo del cliente.";
+        }
+      },
+    });
+
+    if (!resultado.isConfirmed || !resultado.value) {
+      return;
+    }
+
+    // Comisión OXXO: 4% + $3 MXN.
+    const totalOxxo = Number(
+      (
+        totalAntesComisiones +
+        subtotal * 0.04 +
+        3
+      ).toFixed(2)
+    );
+
+    setAplicarComisiones("oxxo");
+    setCargandoOxxo(true);
+    setFichaOxxo("");
+    setReferenciaOxxo("");
+    setMetodo("oxxo");
+
+    try {
+      const respuesta = await axios.post(
+        `${API_URL}/crear-pago-oxxo`,
+        {
+          total: totalOxxo,
+          email: resultado.value,
+        }
+      );
+
+      setFichaOxxo(respuesta.data.ficha || "");
+      setReferenciaOxxo(respuesta.data.referencia || "");
+    } catch (error) {
+      console.error("ERROR GENERANDO FICHA OXXO:", error);
+      console.error("RESPUESTA DEL BACKEND:", error.response?.data);
+      console.error("ESTADO HTTP:", error.response?.status);
+      console.error("MENSAJE:", error.message);
+
+      mostrarAlerta(
+        "Error al generar la ficha",
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          "No se pudo generar la ficha OXXO. Verifica el controlador y las credenciales de Stripe.",
+        "error"
+      );
+    } finally {
+      setCargandoOxxo(false);
     }
   };
 
@@ -545,16 +788,25 @@ const FluxPaySystem = () => {
   const finalizarVenta = async () => {
     await procesarPuntosCliente();
 
+    // Guardamos el total del método antes de quitar la comisión del resumen.
     setVentaFinalizada({
       productos: [...selectedProducts],
       total,
       subtotal,
-      comision: total - subtotal,
+      comision: Number((total - totalAntesComisiones).toFixed(2)),
       metodo,
       fecha: new Date().toLocaleString(),
     });
 
     setShowModal(false);
+    setAplicarComisiones(false);
+    setMetodo(null);
+  };
+
+  const cerrarModalPago = () => {
+    setShowModal(false);
+    setMetodo(null);
+    setAplicarComisiones(false);
   };
 
   const resetTodo = () => {
@@ -825,6 +1077,20 @@ const FluxPaySystem = () => {
                 : "CLIENTE: NINGUNO"}
             </button>
 
+            <button
+              type="button"
+              style={styles.btnCobrar}
+              onClick={async () => {
+                await cargarConfiguracionPuntos();
+                setMostrarConfiguracionPuntos(true);
+              }}
+              disabled={cargandoConfiguracionPuntos}
+            >
+              {cargandoConfiguracionPuntos
+                ? "CARGANDO..."
+                : "CONFIGURAR PUNTOS"}
+            </button>
+
             {clienteSeleccionado && (
               <div
                 style={{
@@ -854,8 +1120,8 @@ const FluxPaySystem = () => {
                   <input
                     id="puntosACanjear"
                     type="number"
-                    min="100"
-                    step="100"
+                    min={configuracionPuntos.puntos_para_canjear}
+                    step={configuracionPuntos.puntos_para_canjear}
                     value={puntosACanjear}
                     onChange={(e) =>
                       setPuntosACanjear(e.target.value)
@@ -865,7 +1131,11 @@ const FluxPaySystem = () => {
 
                   <p style={styles.textoDescuento}>
                     Descuento: $
-                    {(Number(puntosACanjear) / 100).toFixed(2)}
+                    {(
+                      (Number(puntosACanjear) /
+                        Number(configuracionPuntos.puntos_para_canjear || 1)) *
+                      Number(configuracionPuntos.cantidad_de_pesos || 0)
+                    ).toFixed(2)}
                     {" "}MXN
                   </p>
 
@@ -873,8 +1143,10 @@ const FluxPaySystem = () => {
                     type="button"
                     style={styles.btnCobrar}
                     disabled={
-                      Number(puntosACanjear) < 100 ||
-                      Number(puntosACanjear) % 100 !== 0 ||
+                      Number(puntosACanjear) <
+                        Number(configuracionPuntos.puntos_para_canjear || 1) ||
+                      Number(puntosACanjear) %
+                        Number(configuracionPuntos.puntos_para_canjear || 1) !== 0 ||
                       Number(puntosACanjear) >
                         Number(clienteSeleccionado.puntos ?? 0)
                     }
@@ -913,17 +1185,13 @@ const FluxPaySystem = () => {
 
                 console.log("SUBTOTAL:", subtotal);
 
-                if (clienteSeleccionado) {
-                  await procesarPuntosCliente();
-                } else {
+                if (!clienteSeleccionado) {
                   console.log(
                     "No hay cliente seleccionado; no se acumularán puntos."
                   );
                 }
 
-                setMetodo(null);
-                setShowModal(true);
-                setAplicarComisiones(true);
+                setAplicarComisiones(false);
                 setMetodo(null);
                 setShowModal(true);
               }}
@@ -938,10 +1206,7 @@ const FluxPaySystem = () => {
       {showModal && (
         <div
           style={styles.overlay}
-          onClick={() => {
-            setShowModal(false);
-            setMetodo(null);
-          }}
+          onClick={cerrarModalPago}
         >
           <div
             style={styles.modal}
@@ -949,10 +1214,7 @@ const FluxPaySystem = () => {
           >
             <button
               type="button"
-              onClick={() => {
-                setShowModal(false);
-                setMetodo(null);
-              }}
+              onClick={cerrarModalPago}
               style={styles.closeBtn}
             >
               <FaTimes />
@@ -979,22 +1241,48 @@ const FluxPaySystem = () => {
 
                   <div
                     style={styles.methodCard}
-                    onClick={() => setMetodo("cash")}
+                    onClick={() => {
+                      setAplicarComisiones(false);
+                      setMetodo("cash");
+                    }}
                   >
                     <FaMoneyBillWave size={32} />
                     <p>Efectivo</p>
+                  </div>
+
+                  <div
+                    style={styles.methodCard}
+                    onClick={handlePagoOxxo}
+                  >
+                    <FaBarcode size={32} />
+                    <p>Pagar en OXXO</p>
+                  </div>
+
+                  <div
+                    style={styles.methodCard}
+                    onClick={() => {
+                      setAplicarComisiones(false);
+                      setMetodo("transferencia");
+                    }}
+                  >
+                    <FaUniversity size={32} />
+                    <p>Transferencia</p>
                   </div>
                 </div>
               </div>
             ) : (
               <div style={styles.modalContent}>
-                <p style={styles.modalDescription}>
-                  Total a cobrar
-                </p>
+                {metodo !== "transferencia" && (
+                  <>
+                    <p style={styles.modalDescription}>
+                      Total a cobrar
+                    </p>
 
-                <h1 style={styles.modalBigTotal}>
-                  ${total.toFixed(2)}
-                </h1>
+                    <h1 style={styles.modalBigTotal}>
+                      ${total.toFixed(2)}
+                    </h1>
+                  </>
+                )}
 
                 {metodo === "qr" && (
                   <div style={styles.centeredColumn}>
@@ -1065,15 +1353,234 @@ const FluxPaySystem = () => {
                   />
                 )}
 
-                <button
-                  type="button"
-                  style={styles.btnFinalize}
-                  onClick={finalizarVenta}
-                >
-                  <FaCheckCircle /> CONFIRMAR TRANSACCIÓN
-                </button>
+                {metodo === "oxxo" && (
+                  <div style={styles.centeredColumn}>
+                    {cargandoOxxo ? (
+                      <p>Generando ficha OXXO...</p>
+                    ) : fichaOxxo ? (
+                      <>
+                        <div style={styles.statusBadge}>
+                          <FaHourglassHalf /> PENDIENTE DE PAGO
+                        </div>
+
+                        <p style={{ textAlign: "center" }}>
+                          Ficha de pago de prueba
+                        </p>
+
+                        {referenciaOxxo && (
+                          <p
+                            style={{
+                              textAlign: "center",
+                              overflowWrap: "anywhere",
+                            }}
+                          >
+                            <strong>Referencia:</strong> {referenciaOxxo}
+                          </p>
+                        )}
+
+                        <button
+                          type="button"
+                          style={styles.btnWhatsapp}
+                          onClick={() => {
+                            const mensaje =
+                              `Ficha de pago OXXO de ImpulsaPay\n` +
+                              `Total: $${total.toFixed(2)} MXN\n` +
+                              `Referencia: ${referenciaOxxo || "Consultar ficha"}\n` +
+                              `Ficha: ${fichaOxxo}`;
+
+                            window.open(
+                              `https://wa.me/?text=${encodeURIComponent(mensaje)}`,
+                              "_blank"
+                            );
+                          }}
+                        >
+                          <FaWhatsapp size={20} />
+                          COMPARTIR FICHA POR WHATSAPP
+                        </button>
+
+                        <button
+                          type="button"
+                          style={styles.btnVolver}
+                          onClick={() => window.open(fichaOxxo, "_blank")}
+                        >
+                          VER FICHA OXXO
+                        </button>
+                      </>
+                    ) : (
+                      <p>No se recibió una ficha de Stripe.</p>
+                    )}
+                  </div>
+                )}
+
+                {/* MODAL DE TRANSFERENCIA */}
+                {metodo === "transferencia" && (
+                  <div style={styles.centeredColumn}>
+                    <h2 style={styles.modalTitle}>
+                      TRANSACCIÓN
+                    </h2>
+
+                    <p style={styles.modalDescription}>
+                      Transfiere al siguiente número de tarjeta de débito:
+                    </p>
+
+                    <strong
+                      style={{
+                        fontSize: "22px",
+                        color: "#0e2a5a",
+                        textAlign: "center",
+                        letterSpacing: "2px",
+                        margin: "15px 0",
+                      }}
+                    >
+                      XXXX XXXX XXXX XXXX
+                    </strong>
+                  </div>
+                )}
+
+                {metodo !== "oxxo" && (
+                  <button
+                    type="button"
+                    style={styles.btnFinalize}
+                    onClick={finalizarVenta}
+                  >
+                    <FaCheckCircle /> CONFIRMAR TRANSACCIÓN
+                  </button>
+                )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIGURACIÓN DE PUNTOS */}
+      {mostrarConfiguracionPuntos && (
+        <div
+          style={styles.overlay}
+          onClick={() => setMostrarConfiguracionPuntos(false)}
+        >
+          <div
+            style={styles.modal}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              style={styles.closeBtn}
+              onClick={() => setMostrarConfiguracionPuntos(false)}
+            >
+              <FaTimes />
+            </button>
+
+            <h2 style={styles.modalTitle}>
+              CONFIGURAR SISTEMA DE PUNTOS
+            </h2>
+
+            <p style={styles.modalDescription}>
+              Define cuántos puntos necesita acumular un cliente
+              para obtener un descuento.
+            </p>
+
+            <label style={styles.etiquetaFormulario}>
+              Puntos que se abonan por cada compra:
+            </label>
+
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={configuracionPuntos.puntos_por_compra}
+              onChange={(e) =>
+                setConfiguracionPuntos({
+                  ...configuracionPuntos,
+                  puntos_por_compra: e.target.value,
+                })
+              }
+              style={styles.buscarCliente}
+              disabled={
+                cargandoConfiguracionPuntos ||
+                guardandoConfiguracionPuntos
+              }
+            />
+
+            <p style={styles.textoDescuento}>
+              Por cada compra se abonarán{" "}
+              {configuracionPuntos.puntos_por_compra || 0} puntos.
+            </p>
+
+            <label style={styles.etiquetaFormulario}>
+              Puntos necesarios para canjear:
+            </label>
+
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={configuracionPuntos.puntos_para_canjear}
+              onChange={(e) =>
+                setConfiguracionPuntos({
+                  ...configuracionPuntos,
+                  puntos_para_canjear: e.target.value,
+                })
+              }
+              style={styles.buscarCliente}
+              disabled={
+                cargandoConfiguracionPuntos ||
+                guardandoConfiguracionPuntos
+              }
+            />
+
+            <label style={styles.etiquetaFormulario}>
+              Equivalencia en pesos mexicanos:
+            </label>
+
+            <input
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={configuracionPuntos.cantidad_de_pesos}
+              onChange={(e) =>
+                setConfiguracionPuntos({
+                  ...configuracionPuntos,
+                  cantidad_de_pesos: e.target.value,
+                })
+              }
+              style={styles.buscarCliente}
+              disabled={
+                cargandoConfiguracionPuntos ||
+                guardandoConfiguracionPuntos
+              }
+            />
+
+            <p style={styles.textoDescuento}>
+              Ejemplo: {configuracionPuntos.puntos_para_canjear || 0} puntos
+              equivalen a $
+              {Number(
+                configuracionPuntos.cantidad_de_pesos || 0
+              ).toFixed(2)}
+              {" "}MXN.
+            </p>
+
+            <button
+              type="button"
+              style={styles.btnCobrar}
+              onClick={guardarConfiguracionPuntos}
+              disabled={
+                guardandoConfiguracionPuntos ||
+                cargandoConfiguracionPuntos
+              }
+            >
+              {guardandoConfiguracionPuntos
+                ? "GUARDANDO..."
+                : "GUARDAR CONFIGURACIÓN"}
+            </button>
+
+            <button
+              type="button"
+              style={styles.btnVolver}
+              onClick={() => setMostrarConfiguracionPuntos(false)}
+              disabled={guardandoConfiguracionPuntos}
+            >
+              CANCELAR
+            </button>
           </div>
         </div>
       )}
