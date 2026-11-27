@@ -388,3 +388,26 @@
   align-items: center;
   height: 100vh;
 }
+
+/* ================================== */
+/* DASHBOARD APACHE SUPERSET */
+/* ================================== */
+
+.superset-section {
+  width: 100%;
+  margin-bottom: 25px;
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#superset-container {
+  width: 100%;
+  min-height: 700px;
+}
+
+#superset-container iframe {
+  width: 100%;
+  min-height: 700px;
+  border: none;
+}

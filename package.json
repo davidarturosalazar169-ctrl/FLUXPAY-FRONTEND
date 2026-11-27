@@ -12,6 +12,7 @@
   "dependencies": {
     "@stripe/react-stripe-js": "^6.8.0",
     "@stripe/stripe-js": "^9.12.0",
+    "@superset-ui/embedded-sdk": "^0.4.0",
     "apexcharts": "^5.6.0",
     "axios": "^1.18.1",
     "bootstrap": "^5.3.8",

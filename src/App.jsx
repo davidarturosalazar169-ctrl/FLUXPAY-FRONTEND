@@ -43,6 +43,7 @@ import Renderprueba from "./Renderprueba";
 /* ================= Metabase ================= */
 import MetabaseGrafica from "./Metabase/MetabaseGrafica";
 
+import PagarPedidoExterno from "./ApiKey/PagarPedidoExterno";
 
 
 function App() {
@@ -185,6 +186,10 @@ function App() {
        <Route path="/qr-pagar-pedido" element={<PagarPedido />}/>
        <Route path="/qr-pagar-pedido" element={<PagarPedido />}/>
        <Route path="/pago-exitoso" element={<PagoTerminado />}/>
+       <Route
+  path="/pagar-pedido-externo"
+  element={<PagarPedidoExterno />}
+/>
     
       {/* ================= Stripe ================= */}
       <Route
